@@ -1,24 +1,15 @@
-# Familiemat v1
+# Familiemat v16
 
-En mobilvennlig PWA for ukemeny, oppskrifter, basisvarer og handleliste.
+Familie-synkronisering med Supabase.
 
-## Inneholder
-- Mandag–søndag
-- Velg/bytt middag per dag
-- Ferdig oppskriftsbibliotek
-- Egne oppskrifter med ingredienser, porsjoner og fremgangsmåte
-- Oppskrift fra nett via URL
-- Automatisk samlet handleliste
-- Like ingredienser summeres når enhet er lik
-- Avkryssing av kjøpte varer
-- Basisvarer: «Har hjemme» / «Går tom»
-- Lokal lagring i nettleseren
-- PWA-manifest og service worker
+## Nytt i v16
+- Innlogging med e-post/passord via Supabase Auth.
+- Opprett familie og få en familiekode.
+- Bli med i familie med kode på telefon nummer to.
+- Oppskrifter, basisvarer, ukeplan og handleliste synkroniseres til skyen.
+- Realtime-oppdatering mellom familiens telefoner.
+- Eksisterende lokale data kan migreres når første bruker oppretter familien.
+- Fortsatt lokal lagring som arbeidskopi i nettleseren.
 
-## Viktig
-Dette er kildekoden til appen. For at den skal kunne åpnes som en vanlig nettside/app på iPhone må mappen publiseres på en HTTPS-webserver. Ingen Replit-konto eller betalt hosting er nødvendig for selve koden.
-
-
-## v13
-- Added delete button for pantry/basis items with confirmation.
-- Deleting a pantry item also removes its automatic low-stock shopping-list entry.
+## Supabase
+Appen bruker Project URL og Publishable key fra Supabase-prosjektet. Databasepassord og secret/service-role keys brukes ikke i klienten.

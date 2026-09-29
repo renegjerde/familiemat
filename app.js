@@ -31,10 +31,11 @@ function load(){
    x.shopping=Array.isArray(x.shopping)?x.shopping:[];
    x.weekHistory=Array.isArray(x.weekHistory)?x.weekHistory:[];
    x.recipes=x.recipes.map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
+   x.pendingDeletes=x.pendingDeletes||{recipes:[],pantry:[]};
    return x;
   }
  }catch(e){}
- return{week:Array(7).fill(null),recipes:starterRecipes,pantry:starterPantry,shopping:[],weekHistory:[]}
+ return{week:Array(7).fill(null),recipes:starterRecipes,pantry:starterPantry,shopping:[],weekHistory:[],pendingDeletes:{recipes:[],pantry:[]}}
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function saveAndSync(){save();queueCloudSync()}
@@ -59,7 +60,7 @@ function showFamilySetup(){modal(`<h2>👨‍👩‍👧 Koble familien</h2><p c
 function joinFamilyPrompt(){modal(`<h2>🔑 Bli med i familien</h2><p class="small">Skriv inn familiekoden du får fra den andre telefonen.</p><div class="field"><label>Familiekode</label><input id="joinCode" autocapitalize="characters" placeholder="F.eks. A1B2C3D4"></div><button class="btn full" onclick="joinFamily()">Bli med</button>`)}
 async function createFamily(){const {data,error}=await cloud.rpc('create_family',{p_name:'Familiemat'});if(error)return alert(error.message);familyId=data?.[0]?.family_id;if(!familyId)return alert('Kunne ikke opprette familien.');localStorage.setItem(FAMILY_KEY,familyId);await migrateLocalToCloud();closeModal();await subscribeRealtime();await refreshRemote();alert(`Familien er opprettet. Familiekoden er ${data[0].join_code}. Del denne koden med samboeren din.`);render();}
 async function joinFamily(){const code=document.getElementById('joinCode')?.value.trim();if(!code)return alert('Skriv inn familiekoden.');const {data,error}=await cloud.rpc('join_family',{p_join_code:code});if(error)return alert(error.message);familyId=data;localStorage.setItem(FAMILY_KEY,familyId);closeModal();await subscribeRealtime();await refreshRemote();alert('Du er nå koblet til familien.');render();}
-async function showFamilyModal(fid){const {data:family}=await cloud.from('families').select('name,join_code').eq('id',fid).maybeSingle();const code=family?.join_code||'—';modal(`<h2>☁️ ${esc(family?.name||'Familiemat')}</h2><p class="small">Familiekode: <strong>${esc(code)}</strong></p><p class="small">Endringer synkroniseres mellom telefonene når dere er på nett.</p><button class="btn full secondary" onclick="refreshRemote().then(()=>{closeModal();render()})">🔄 Synkroniser nå</button><button class="btn full secondary" onclick="signOut().then(()=>closeModal())">Logg ut</button>`)}
+async function showFamilyModal(fid){const {data:family}=await cloud.from('families').select('name,join_code').eq('id',fid).maybeSingle();const code=family?.join_code||'—';modal(`<h2>☁️ ${esc(family?.name||'Familiemat')}</h2><p class="small">Familiekode: <strong>${esc(code)}</strong></p><p class="small">Endringer synkroniseres mellom telefonene når dere er på nett.</p><button class="btn full secondary" onclick="syncLocalChanges().then(()=>{closeModal();render()})">🔄 Synkroniser nå</button><button class="btn full secondary" onclick="signOut().then(()=>closeModal())">Logg ut</button>`)}
 function currentWeekKey(){const d=new Date();const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-day);const year=date.getUTCFullYear();const yearStart=new Date(Date.UTC(year,0,1));const week=Math.ceil((((date-yearStart)/86400000)+1)/7);return `${year}-W${String(week).padStart(2,'0')}`;}
 async function migrateLocalToCloud(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
  const recipeRows=data.recipes.map(r=>({family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
@@ -73,24 +74,41 @@ async function migrateLocalToCloud(){if(!familyId||!authSession||cloudBusy)retur
 async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
  const [rr,pp,ww]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle()]);
  if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
- data.recipes=(rr.data||[]).map(r=>({id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]}));
- data.pantry=(pp.data||[]).map(p=>({id:p.id,name:p.name,low:!!p.low}));
- const plan=ww.data?.days;if(Array.isArray(plan)){data.week=plan.length===7?plan:Array(7).fill(null);data.shopping=[];}else{data.week=Array.isArray(plan?.meals)?plan.meals:Array(7).fill(null);data.shopping=Array.isArray(plan?.shopping)?plan.shopping:[];}
- if(!data.recipes.length && !data.pantry.length){data.recipes=starterRecipes;data.pantry=starterPantry.map(x=>({...x}));}
+ const pending=data.pendingDeletes||{recipes:[],pantry:[]};
+ const localById=new Map(data.recipes.filter(r=>r.id).map(r=>[r.id,r]));
+ for(const r of (rr.data||[])){if(pending.recipes.includes(r.id))continue;localById.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}
+ const localsWithoutId=data.recipes.filter(r=>!r.id);
+ data.recipes=[...localById.values(),...localsWithoutId];
+ const pantryById=new Map(data.pantry.filter(p=>p.id).map(p=>[p.id,p]));
+ for(const p of (pp.data||[])){if(pending.pantry.includes(p.id))continue;pantryById.set(p.id,{id:p.id,name:p.name,low:!!p.low});}
+ const pantryWithoutId=data.pantry.filter(p=>!p.id);
+ data.pantry=[...pantryById.values(),...pantryWithoutId];
+ const plan=ww.data?.days;if(Array.isArray(plan)){data.week=plan.length===7?plan:Array(7).fill(null);data.shopping=[];}else if(plan){data.week=Array.isArray(plan.meals)?plan.meals:data.week;data.shopping=Array.isArray(plan.shopping)?plan.shopping:data.shopping;}
  syncShopping();save();cloudReady=true;
  }catch(e){console.error(e);alert('Kunne ikke hente Familiemat-data fra skyen: '+(e.message||e));}finally{cloudBusy=false;}}
+
 async function pushWeek(){if(!familyId||!authSession||cloudBusy)return;const res=await cloud.from('week_plans').upsert({family_id:familyId,week_key:currentWeekKey(),days:{meals:data.week,shopping:data.shopping}},{onConflict:'family_id,week_key'});if(res.error)console.error(res.error);}
 let syncTimer=null;function queueCloudSync(){if(!familyId||!authSession)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncLocalChanges(),250);}
 async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
- // Recipes: upsert current set, then remove cloud recipes that no longer exist locally.
- const rows=data.recipes.map(r=>({...(r.id?{id:r.id}:{}),family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
- if(rows.length){const up=await cloud.from('recipes').upsert(rows).select();if(up.error)throw up.error;data.recipes=up.data.map(r=>({...r,ingredients:r.ingredients||[],days:r.days||[],categories:r.categories||[]}));}
- const existingIds=data.recipes.map(r=>r.id).filter(Boolean);const remote=await cloud.from('recipes').select('id').eq('family_id',familyId);if(remote.error)throw remote.error;for(const r of (remote.data||[])){if(!existingIds.includes(r.id)){const del=await cloud.from('recipes').delete().eq('id',r.id).eq('family_id',familyId);if(del.error)throw del.error;}}
- const prows=data.pantry.map(p=>({...(p.id?{id:p.id}:{}),family_id:familyId,name:p.name,low:!!p.low}));if(prows.length){const pu=await cloud.from('pantry').upsert(prows).select();if(pu.error)throw pu.error;data.pantry=pu.data.map(p=>({...p}));}
- const prem=await cloud.from('pantry').select('id').eq('family_id',familyId);if(prem.error)throw prem.error;const pids=data.pantry.map(p=>p.id).filter(Boolean);for(const p of (prem.data||[])){if(!pids.includes(p.id)){const del=await cloud.from('pantry').delete().eq('id',p.id).eq('family_id',familyId);if(del.error)throw del.error;}}
- await pushWeek();save();
- }catch(e){console.error(e);}
- finally{cloudBusy=false;}}
+ const pending=data.pendingDeletes||{recipes:[],pantry:[]};
+ // First remove items explicitly deleted on this device. We never infer deletions from a missing local item.
+ for(const id of pending.recipes){const res=await cloud.from('recipes').delete().eq('id',id).eq('family_id',familyId);if(res.error)throw res.error;}
+ for(const id of pending.pantry){const res=await cloud.from('pantry').delete().eq('id',id).eq('family_id',familyId);if(res.error)throw res.error;}
+ pending.recipes=[];pending.pantry=[];data.pendingDeletes=pending;
+ // Push local recipes, including brand-new recipes. Never delete remote recipes merely because they are absent locally.
+ const newRecipeRows=data.recipes.map(r=>({...(r.id?{id:r.id}:{}),family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
+ if(newRecipeRows.length){const up=await cloud.from('recipes').upsert(newRecipeRows).select();if(up.error)throw up.error;data.recipes=up.data.map(r=>({...r,ingredients:r.ingredients||[],days:r.days||[],categories:r.categories||[]}));}
+ const prows=data.pantry.map(p=>({...(p.id?{id:p.id}:{}),family_id:familyId,name:p.name,low:!!p.low}));
+ if(prows.length){const pu=await cloud.from('pantry').upsert(prows).select();if(pu.error)throw pu.error;data.pantry=pu.data.map(p=>({...p}));}
+ await pushWeek();
+ // Pull remote additions/changes after pushing local changes, merging instead of replacing local data.
+ const [rr,pp]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId)]);
+ if(rr.error)throw rr.error;if(pp.error)throw pp.error;
+ const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
+ const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){pantryMap.set(p.id,{id:p.id,name:p.name,low:!!p.low});}data.pantry=[...pantryMap.values()];
+ syncShopping();save();
+ }catch(e){console.error(e);alert('Synkronisering feilet: '+(e.message||e));}finally{cloudBusy=false;}}
+
 async function subscribeRealtime(){if(!familyId||!authSession)return;if(realtimeChannel)await cloud.removeChannel(realtimeChannel);realtimeChannel=cloud.channel('familiemat-'+familyId).on('postgres_changes',{event:'*',schema:'public',table:'recipes',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'pantry',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'week_plans',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).subscribe();}
 async function afterSignedIn(){const {data:m}=await cloud.from('family_members').select('family_id').eq('user_id',authSession.user.id).maybeSingle();if(m?.family_id){familyId=m.family_id;localStorage.setItem(FAMILY_KEY,familyId);await subscribeRealtime();await refreshRemote();render();}else{showFamilySetup();render();}}
 
@@ -213,7 +231,7 @@ function clearBought(){data.shopping=data.shopping.filter(x=>!x.done);saveAndSyn
 function togglePantry(i){data.pantry[i].low=!data.pantry[i].low;syncShopping();saveAndSync();render()}
 function addPantry(){modal(`<h2>Ny basisvare</h2><div class="field"><label>Navn</label><input id="pname" placeholder="F.eks. melk"></div><button class="btn full" onclick="savePantry()">Legg til</button>`)}
 function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;data.pantry.push({name:n,low:false});saveAndSync();closeModal();render()}
-function deletePantry(i){const item=data.pantry[i];if(!item)return;if(confirm(`Vil du slette ${item.name} fra basisvarene?`)){data.pantry.splice(i,1);syncShopping();saveAndSync();render()}}
+async function deletePantry(i){const item=data.pantry[i];if(!item)return;if(confirm(`Vil du slette ${item.name} fra basisvarene?`)){if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[]};data.pendingDeletes.pantry.push(item.id);}data.pantry.splice(i,1);syncShopping();saveAndSync();render()}}
 function recipeForm(i=-1,day=null,prefill=null){
  const r=prefill||(i>=0?data.recipes[i]:{name:'',servings:4,ingredients:[['',1,'stk']],instructions:'',url:'',days:[],categories:[]});
  const selectedDays=new Set(r.days||[]), selectedCats=new Set(r.categories||[]);
@@ -238,7 +256,7 @@ function saveRecipe(i,day=null){
  syncShopping();saveAndSync();closeModal();render()
 }
 function newRecipe(){recipeForm()};function editRecipe(i){recipeForm(i)}
-function deleteRecipe(i){if(confirm('Slette oppskriften?')){data.recipes.splice(i,1);data.week=data.week.map(x=>data.recipes.some(r=>r.name===x)?x:null);syncShopping();saveAndSync();render()}}
+function deleteRecipe(i){const item=data.recipes[i];if(!item)return;if(confirm('Slette oppskriften?')){if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[]};data.pendingDeletes.recipes.push(item.id);}data.recipes.splice(i,1);data.week=data.week.map(x=>data.recipes.some(r=>r.name===x)?x:null);syncShopping();saveAndSync();render()}}
 function webRecipe(){modal(`<h2>🌐 Oppskrift fra nett</h2><p class="small">Lim inn lenken til en oppskrift. Familiemat prøver å hente navn, porsjoner, ingredienser og fremgangsmåte automatisk. Du får redigere alt før du lagrer.</p><div class="field"><label>Lenke til oppskrift</label><input id="weburl" type="url" inputmode="url" placeholder="https://..."></div><button class="btn full" onclick="importWebRecipe()">Hent oppskrift</button><p class="small">Tips: Oppskrifter som bruker standarden Schema.org/Recipe gir som regel best resultat. cite_placeholder</p>`)}
 
 function parseImportedIngredient(line){let t=String(line||'').replace(/^[-*•]\s*/,'').replace(/\s+/g,' ').trim();if(!t)return null; t=t.replace(/^\d+\.\s*/, '');

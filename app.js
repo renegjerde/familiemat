@@ -14,7 +14,7 @@ function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x)return x}ca
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 const categoryOrder=['Frukt og grønt','Kjøtt og fisk','Meieri og egg','Brød og bakervarer','Tørrvarer','Hermetikk og sauser','Frysevarer','Drikke','Husholdning','Annet'];
 const exactCategories={
-  'poteter':'Frukt og grønt','sitron':'Frukt og grønt','løk':'Frukt og grønt','paprika':'Frukt og grønt','gulrøtter':'Frukt og grønt','gulrot':'Frukt og grønt','hakkede tomater':'Frukt og grønt','tomat':'Frukt og grønt','agurk':'Frukt og grønt','salat':'Frukt og grønt','brokkoli':'Frukt og grønt','blomkål':'Frukt og grønt','eple':'Frukt og grønt','banan':'Frukt og grønt','avokado':'Frukt og grønt','hvitløk':'Frukt og grønt','ingefær':'Frukt og grønt',
+  'poteter':'Tørrvarer','sitron':'Frukt og grønt','løk':'Frukt og grønt','paprika':'Frukt og grønt','gulrøtter':'Tørrvarer','gulrot':'Tørrvarer','hakkede tomater':'Hermetikk og sauser','tomat':'Frukt og grønt','agurk':'Frukt og grønt','salat':'Frukt og grønt','brokkoli':'Frukt og grønt','blomkål':'Frukt og grønt','eple':'Frukt og grønt','banan':'Frukt og grønt','avokado':'Frukt og grønt','hvitløk':'Frukt og grønt','ingefær':'Frukt og grønt',
   'laks':'Kjøtt og fisk','fiskekaker':'Kjøtt og fisk','fiskekake':'Kjøtt og fisk','torsk':'Kjøtt og fisk','kjøttdeig':'Kjøtt og fisk','kylling':'Kjøtt og fisk','skinke':'Kjøtt og fisk','bacon':'Kjøtt og fisk','pølse':'Kjøtt og fisk','karbonade':'Kjøtt og fisk',
   'rømme':'Meieri og egg','ost':'Meieri og egg','smør':'Meieri og egg','melk':'Meieri og egg','yoghurt':'Meieri og egg','fløte':'Meieri og egg','egg':'Meieri og egg','kremost':'Meieri og egg','parmesan':'Meieri og egg','mozzarella':'Meieri og egg','feta':'Meieri og egg',
   'spaghetti':'Tørrvarer','pasta':'Tørrvarer','ris':'Tørrvarer','havregryn':'Tørrvarer','mel':'Tørrvarer','sukker':'Tørrvarer','salt':'Tørrvarer','pepper':'Tørrvarer','olje':'Tørrvarer','kaffe':'Tørrvarer','te':'Tørrvarer','tacokrydder':'Tørrvarer','krydder':'Tørrvarer','tortilla':'Tørrvarer','melis':'Tørrvarer','bakepulver':'Tørrvarer',
@@ -28,8 +28,8 @@ function categorizeIngredient(name){
   if(/frossen|fryse/.test(n))return 'Frysevarer';
   if(/toalett|dopapir|oppvask|såpe|vask|tørkepapir|serviett/.test(n))return 'Husholdning';
   if(/juice|brus|vann|saft/.test(n))return 'Drikke';
-  if(/kokosmelk|mais|salsa|bønne|hermet|glass|boks/.test(n))return 'Hermetikk og sauser';
-  if(/spaghetti|pasta|ris|havre|mel|sukker|salt|pepper|olje|kaffe|te|tacokrydder|krydder|tortilla|melis|bakepulver/.test(n))return 'Tørrvarer';
+  if(/kokosmelk|mais|salsa|bønne|hakkede tomater|hermet|glass|boks/.test(n))return 'Hermetikk og sauser';
+  if(/spaghetti|pasta|ris|havre|mel|sukker|salt|pepper|olje|kaffe|te|tacokrydder|krydder|tortilla|melis|bakepulver|potet|gulrot/.test(n))return 'Tørrvarer';
   if(/brød|rundstykke|knekkebrød|baguette|pizzabunn/.test(n))return 'Brød og bakervarer';
   if(/kjøtt|kjøttdeig|kylling|skinke|bacon|pølse|laks|fisk|fiskekake|torsk|karbonade/.test(n))return 'Kjøtt og fisk';
   if(/melk|rømme|ost|smør|yoghurt|fløte|egg|kremost|parmesan|mozzarella|feta/.test(n))return 'Meieri og egg';

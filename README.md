@@ -1,4 +1,4 @@
-# Familiemat v6
+# Familiemat v7
 
 PWA for weekly meal planning, recipes, shopping lists and pantry items.
 

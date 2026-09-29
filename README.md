@@ -17,3 +17,8 @@ En mobilvennlig PWA for ukemeny, oppskrifter, basisvarer og handleliste.
 
 ## Viktig
 Dette er kildekoden til appen. For at den skal kunne åpnes som en vanlig nettside/app på iPhone må mappen publiseres på en HTTPS-webserver. Ingen Replit-konto eller betalt hosting er nødvendig for selve koden.
+
+
+## v13
+- Added delete button for pantry/basis items with confirmation.
+- Deleting a pantry item also removes its automatic low-stock shopping-list entry.

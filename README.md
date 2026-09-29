@@ -1,8 +1,8 @@
-# 🍲 Familiemat v26
+# 🍲 Familiemat v27
 
 Familiesynkronisering med Supabase, autosave og tryggere deling av alle familie-data.
 
-## Nytt i v26
+## Nytt i v27
 - Faste handlevarer har egen Supabase-tabell og synkroniseres automatisk mellom enheter.
 - Faste handlevarer får lokal autosave, skybackup, realtime-oppdatering og eksplisitt sletting.
 - Ukeplan og handleliste synkroniseres automatisk som før, med lokal tidsstempelmarkør slik at nyere lokale endringer ikke overskrives av eldre skydata.

@@ -62,11 +62,15 @@ async function createFamily(){const {data,error}=await cloud.rpc('create_family'
 async function joinFamily(){const code=document.getElementById('joinCode')?.value.trim();if(!code)return alert('Skriv inn familiekoden.');const {data,error}=await cloud.rpc('join_family',{p_join_code:code});if(error)return alert(error.message);familyId=data;localStorage.setItem(FAMILY_KEY,familyId);closeModal();await subscribeRealtime();await refreshRemote();alert('Du er nå koblet til familien.');render();}
 async function showFamilyModal(fid){const {data:family}=await cloud.from('families').select('name,join_code').eq('id',fid).maybeSingle();const code=family?.join_code||'—';modal(`<h2>☁️ ${esc(family?.name||'Familiemat')}</h2><p class="small">Familiekode: <strong>${esc(code)}</strong></p><p class="small">Endringer synkroniseres mellom telefonene når dere er på nett.</p><button class="btn full secondary" onclick="syncLocalChanges().then(()=>{closeModal();render()})">🔄 Synkroniser nå</button><button class="btn full secondary" onclick="signOut().then(()=>closeModal())">Logg ut</button>`)}
 function currentWeekKey(){const d=new Date();const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-day);const year=date.getUTCFullYear();const yearStart=new Date(Date.UTC(year,0,1));const week=Math.ceil((((date-yearStart)/86400000)+1)/7);return `${year}-W${String(week).padStart(2,'0')}`;}
+function newId(){return (crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3)|8;return v.toString(16)});}
+
 async function migrateLocalToCloud(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
- const recipeRows=data.recipes.map(r=>({family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
+ data.recipes=data.recipes.map(r=>r.id?r:{...r,id:newId()});
+ const recipeRows=data.recipes.map(r=>({id:r.id,family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
  const ins=await cloud.from('recipes').insert(recipeRows).select();if(ins.error)throw ins.error;
  data.recipes=ins.data.map((r,i)=>({...recipeRows[i],id:r.id,created_at:r.created_at,updated_at:r.updated_at}));
- const pantryRows=data.pantry.map(p=>({family_id:familyId,name:p.name,low:!!p.low}));
+ data.pantry=data.pantry.map(p=>p.id?p:{...p,id:newId()});
+ const pantryRows=data.pantry.map(p=>({id:p.id,family_id:familyId,name:p.name,low:!!p.low}));
  if(pantryRows.length){const pi=await cloud.from('pantry').insert(pantryRows).select();if(pi.error)throw pi.error;data.pantry=pi.data.map((p,i)=>({...pantryRows[i],id:p.id}));}
  await cloud.from('week_plans').upsert({family_id:familyId,week_key:currentWeekKey(),days:{meals:data.week,shopping:data.shopping}},{onConflict:'family_id,week_key'});
  save();
@@ -96,9 +100,11 @@ async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;c
  for(const id of pending.pantry){const res=await cloud.from('pantry').delete().eq('id',id).eq('family_id',familyId);if(res.error)throw res.error;}
  pending.recipes=[];pending.pantry=[];data.pendingDeletes=pending;
  // Push local recipes, including brand-new recipes. Never delete remote recipes merely because they are absent locally.
- const newRecipeRows=data.recipes.map(r=>({...(r.id?{id:r.id}:{}),family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
+ data.recipes=data.recipes.map(r=>r.id?r:{...r,id:newId()});
+ const newRecipeRows=data.recipes.map(r=>({id:r.id,family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
  if(newRecipeRows.length){const up=await cloud.from('recipes').upsert(newRecipeRows).select();if(up.error)throw up.error;data.recipes=up.data.map(r=>({...r,ingredients:r.ingredients||[],days:r.days||[],categories:r.categories||[]}));}
- const prows=data.pantry.map(p=>({...(p.id?{id:p.id}:{}),family_id:familyId,name:p.name,low:!!p.low}));
+ data.pantry=data.pantry.map(p=>p.id?p:{...p,id:newId()});
+ const prows=data.pantry.map(p=>({id:p.id,family_id:familyId,name:p.name,low:!!p.low}));
  if(prows.length){const pu=await cloud.from('pantry').upsert(prows).select();if(pu.error)throw pu.error;data.pantry=pu.data.map(p=>({...p}));}
  await pushWeek();
  // Pull remote additions/changes after pushing local changes, merging instead of replacing local data.

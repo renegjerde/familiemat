@@ -68,6 +68,8 @@ async function showFamilyModal(fid){const {data:family}=await cloud.from('famili
 function currentWeekKey(){const d=new Date();const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-day);const year=date.getUTCFullYear();const yearStart=new Date(Date.UTC(year,0,1));const week=Math.ceil((((date-yearStart)/86400000)+1)/7);return `${year}-W${String(week).padStart(2,'0')}`;}
 function newId(){return (crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3)|8;return v.toString(16)});}
 
+function isMissingFixedTableError(err){const msg=String(err?.message||err||'');return err?.code==='PGRST205'||/fixed_shopping.*schema cache|Could not find the table.*fixed_shopping/i.test(msg);}
+async function fetchFixedShopping(){if(!familyId||!authSession||fixedTableReady)return {data:[],error:null};const res=await cloud.from('fixed_shopping').select('*').eq('family_id',familyId);if(res.error){if(isMissingFixedTableError(res.error)){fixedTableReady=false;return {data:[],error:null,missing:true};}return res;}fixedTableReady=true;return res;}
 async function migrateLocalToCloud(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
  data.recipes=data.recipes.map(r=>r.id?r:{...r,id:newId()});
  const recipeRows=data.recipes.map(r=>({id:r.id,family_id:familyId,name:r.name,servings:r.servings,ingredients:r.ingredients,instructions:r.instructions,url:r.url||'',days:r.days||[],categories:r.categories||[]}));
@@ -78,14 +80,15 @@ async function migrateLocalToCloud(){if(!familyId||!authSession||cloudBusy)retur
  if(pantryRows.length){const pi=await cloud.from('pantry').insert(pantryRows).select();if(pi.error)throw pi.error;data.pantry=pi.data.map((p,i)=>({...pantryRows[i],id:p.id}));}
  data.fixedShopping=(data.fixedShopping||[]).map(x=>x.id?x:{...x,id:newId()});
  const frows=data.fixedShopping.map(x=>({id:x.id,family_id:familyId,name:x.name,qty:Number(x.qty)||1,unit:x.unit||'stk',category:x.category||'Annet',active:x.active!==false}));
- if(frows.length){const fr=await cloud.from('fixed_shopping').upsert(frows).select();if(fr.error)throw fr.error;}
+ if(frows.length){const fr=await cloud.from('fixed_shopping').upsert(frows).select();if(fr.error){if(!isMissingFixedTableError(fr.error))throw fr.error;fixedTableReady=false;}else fixedTableReady=true;}
  data.fixedShoppingUpdatedAt=Date.now();
  await cloud.from('week_plans').upsert({family_id:familyId,week_key:currentWeekKey(),days:{meals:data.week,shopping:data.shopping}},{onConflict:'family_id,week_key'});
  save();
  }catch(e){console.error(e);alert('Kunne ikke flytte de lokale dataene til skyen: '+(e.message||e));}finally{cloudBusy=false;}}
 async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
- const [rr,pp,ww,ff]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle(),cloud.from('fixed_shopping').select('*').eq('family_id',familyId)]);
- if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;if(ff.error)throw ff.error;
+ const [rr,pp,ww]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle()]);
+ if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
+ const ff=await fetchFixedShopping();
  const pending=data.pendingDeletes||{recipes:[],pantry:[]};
  const localById=new Map(data.recipes.filter(r=>r.id).map(r=>[r.id,r]));
  for(const r of (rr.data||[])){if(pending.recipes.includes(r.id))continue;localById.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}
@@ -119,7 +122,7 @@ async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;c
  // First remove items explicitly deleted on this device. We never infer deletions from a missing local item.
  for(const id of pending.recipes){const res=await cloud.from('recipes').delete().eq('id',id).eq('family_id',familyId);if(res.error)throw res.error;}
  for(const id of pending.pantry){const res=await cloud.from('pantry').delete().eq('id',id).eq('family_id',familyId);if(res.error)throw res.error;}
- for(const id of pending.fixedShopping){const res=await cloud.from('fixed_shopping').delete().eq('id',id).eq('family_id',familyId);if(res.error)throw res.error;}
+ if(fixedTableReady){for(const id of pending.fixedShopping){const res=await cloud.from('fixed_shopping').delete().eq('id',id).eq('family_id',familyId);if(res.error&&!isMissingFixedTableError(res.error))throw res.error;}}
  data.fixedShoppingDeleted=[...new Set([...(data.fixedShoppingDeleted||[]),...(pending.fixedShopping||[])])];
  pending.recipes=[];pending.pantry=[];pending.fixedShopping=[];data.pendingDeletes=pending;
  // Push local recipes, including brand-new recipes. Never delete remote recipes merely because they are absent locally.
@@ -132,12 +135,13 @@ async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;c
  if(prows.length){const pu=await cloud.from('pantry').upsert(prows).select();if(pu.error)throw pu.error;data.pantry=pu.data.map(p=>({...p}));}
  data.fixedShopping=(data.fixedShopping||[]).map(x=>x.id?x:{...x,id:newId()});
  const frows2=data.fixedShopping.map(x=>({id:x.id,family_id:familyId,name:x.name,qty:Number(x.qty)||1,unit:x.unit||'stk',category:x.category||'Annet',active:x.active!==false}));
- if(frows2.length){const fu=await cloud.from('fixed_shopping').upsert(frows2).select();if(fu.error)throw fu.error;data.fixedShopping=fu.data.map(x=>({...x,qty:Number(x.qty)||1}));}
+ if(frows2.length){const fu=await cloud.from('fixed_shopping').upsert(frows2).select();if(fu.error){if(!isMissingFixedTableError(fu.error))throw fu.error;fixedTableReady=false;}else{fixedTableReady=true;data.fixedShopping=fu.data.map(x=>({...x,qty:Number(x.qty)||1}));}}
  data.fixedShoppingUpdatedAt=Date.now();
  await pushWeek();
  // Pull remote additions/changes after pushing local changes, merging instead of replacing local data.
- const [rr,pp,ww,ff]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle(),cloud.from('fixed_shopping').select('*').eq('family_id',familyId)]);
- if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;if(ff.error)throw ff.error;
+ const [rr,pp,ww]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle()]);
+ if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
+ const ff=await fetchFixedShopping();
  const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
  const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){pantryMap.set(p.id,{id:p.id,name:p.name,low:!!p.low});}data.pantry=[...pantryMap.values()];
  const fixedMap2=new Map((data.fixedShopping||[]).map(x=>[x.id,x])); for(const f of (ff.data||[])){fixedMap2.set(f.id,{id:f.id,name:f.name,qty:Number(f.qty)||1,unit:f.unit||'stk',category:f.category||categorizeIngredient(f.name),active:f.active!==false});} data.fixedShopping=[...fixedMap2.values()]; fixedTableReady=true;
@@ -145,7 +149,7 @@ async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;c
  syncShopping();save();
  }catch(e){console.error(e);alert('Synkronisering feilet: '+(e.message||e));}finally{cloudBusy=false;}}
 
-async function subscribeRealtime(){if(!familyId||!authSession)return;if(realtimeChannel)await cloud.removeChannel(realtimeChannel);realtimeChannel=cloud.channel('familiemat-'+familyId).on('postgres_changes',{event:'*',schema:'public',table:'recipes',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'pantry',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'week_plans',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'fixed_shopping',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).subscribe();}
+async function subscribeRealtime(){if(!familyId||!authSession)return;if(realtimeChannel)await cloud.removeChannel(realtimeChannel);let ch=cloud.channel('familiemat-'+familyId).on('postgres_changes',{event:'*',schema:'public',table:'recipes',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'pantry',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();}).on('postgres_changes',{event:'*',schema:'public',table:'week_plans',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();});if(fixedTableReady){ch=ch.on('postgres_changes',{event:'*',schema:'public',table:'fixed_shopping',filter:`family_id=eq.${familyId}`},async()=>{await refreshRemote();render();});}realtimeChannel=ch.subscribe();}
 async function afterSignedIn(){const {data:m}=await cloud.from('family_members').select('family_id').eq('user_id',authSession.user.id).maybeSingle();if(m?.family_id){familyId=m.family_id;localStorage.setItem(FAMILY_KEY,familyId);await subscribeRealtime();await refreshRemote();render();}else{showFamilySetup();render();}}
 
 const categoryOrder=['Frukt og grønt','Kjøtt og fisk','Meieri og egg','Brød og bakervarer','Tørrvarer','Hermetikk og sauser','Frysevarer','Drikke','Husholdning','Annet'];

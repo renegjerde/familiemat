@@ -1,8 +1,8 @@
-# Familiemat v22
+# Familiemat v23
 
 Familiesynkronisering med Supabase, automatisk lokal lagring og tryggere skysynk.
 
-## Nytt i v22
+## Nytt i v23
 - Nye oppskrifter og basisvarer får en unik ID lokalt før de sendes til Supabase.
 - Dette hindrer `null value in column "id"` ved synkronisering av nye elementer.
 - Lokal lagring beholdes som arbeidskopi.
@@ -18,3 +18,7 @@ Familiesynkronisering med Supabase, automatisk lokal lagring og tryggere skysynk
 
 ## Supabase
 Appen bruker Project URL og Publishable key fra Supabase. Databasepassord og secret/service-role keys brukes ikke i klienten.
+
+- Ukemenyen har egen synkroniseringsmarkør slik at endringer fra PC og mobil ikke overskrives av en eldre lokal ukeplan.
+- Realtime-oppdateringer av ukeplanen bruker samme skylagring som oppskrifter og basisvarer.
+- Nettlenker vises som en tydelig «🌐 Åpne oppskrift»-knapp.

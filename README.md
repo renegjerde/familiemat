@@ -1,4 +1,4 @@
-# Familiemat v23
+# Familiemat v24
 
 Familiesynkronisering med Supabase, automatisk lokal lagring og tryggere skysynk.
 
@@ -22,3 +22,7 @@ Appen bruker Project URL og Publishable key fra Supabase. Databasepassord og sec
 - Ukemenyen har egen synkroniseringsmarkør slik at endringer fra PC og mobil ikke overskrives av en eldre lokal ukeplan.
 - Realtime-oppdateringer av ukeplanen bruker samme skylagring som oppskrifter og basisvarer.
 - Nettlenker vises som en tydelig «🌐 Åpne oppskrift»-knapp.
+
+
+## v24
+- Forbedret knapp for å åpne originaloppskrift fra nettlenke.

@@ -13,3 +13,7 @@ Familie-synkronisering med Supabase.
 
 ## Supabase
 Appen bruker Project URL og Publishable key fra Supabase-prosjektet. Databasepassord og secret/service-role keys brukes ikke i klienten.
+
+
+## v18
+Improved authentication form handling and cache busting.

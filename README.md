@@ -1,28 +1,31 @@
-# Familiemat v24
+# Familiemat v25
 
-Familiesynkronisering med Supabase, automatisk lokal lagring og tryggere skysynk.
+Familieapp for ukemeny, oppskrifter, handleliste og faste innkjøp.
 
-## Nytt i v23
-- Nye oppskrifter og basisvarer får en unik ID lokalt før de sendes til Supabase.
-- Dette hindrer `null value in column "id"` ved synkronisering av nye elementer.
-- Lokal lagring beholdes som arbeidskopi.
-- Synkronisering slår sammen nye lokale og eksisterende skydata i stedet for å slette elementer som mangler lokalt.
-- Eksplisitt sletting sendes til skyen.
-- Automatisk skysynk etter lokale endringer.
-- Ukehistorikk og «Ny uke» med automatisk arkivering.
-- «Foreslå ukemeny» med minst to fiskemiddager og variasjon basert på historikk.
-- Nettimport av oppskrifter med etterfølgende redigering.
-- Oppskriftskategorier og aktuelle ukedager.
-- Alfabetisk sortering av oppskrifter og basisvarer.
-- Kategorisert handleliste, inkludert forbedret husholdningskategorisering.
+## Nytt i v25
+
+- Ny fane **Fast handel** for varer familien kjøper jevnlig, men som ikke er basisvarer.
+- Eksempler: epler, bananer, miniost, yoghurt og matpakkevarer.
+- Hver fast handlevare har navn, mengde, enhet, butikkategori og aktiv/inaktiv-status.
+- Aktive faste handlevarer legges automatisk inn i den vanlige handlelisten.
+- Like varer fra middag, basisvarer og fast handel slås sammen når navn og enhet passer.
+- Faste handlevarer lagres lokalt og synkroniseres via familiens eksisterende Supabase-ukeplan.
+- Femfanenavigasjon: Uke, Oppskrifter, Handleliste, Fast handel og Basisvarer.
+- Oppdatert service worker/cache til v25.
+
+## Tidligere funksjoner
+
+- Oppskrifter sorteres alfabetisk og kan opprettes, redigeres og slettes.
+- Oppskrifter kan importeres fra nettlenke og redigeres før lagring.
+- Oppskrifter kan ha aktuelle ukedager og kategorier.
+- Foreslå ukemeny krever minst to fiskemiddager og bruker ukehistorikk for variasjon.
+- Ny uke arkiverer automatisk forrige uke.
+- Basisvarer kan markeres «Går tom» og slettes.
+- Handlelisten kategoriseres og sorteres automatisk.
+- Familiesynkronisering via Supabase med innlogging og realtime.
 
 ## Supabase
-Appen bruker Project URL og Publishable key fra Supabase. Databasepassord og secret/service-role keys brukes ikke i klienten.
 
-- Ukemenyen har egen synkroniseringsmarkør slik at endringer fra PC og mobil ikke overskrives av en eldre lokal ukeplan.
-- Realtime-oppdateringer av ukeplanen bruker samme skylagring som oppskrifter og basisvarer.
-- Nettlenker vises som en tydelig «🌐 Åpne oppskrift»-knapp.
+Appen bruker Project URL og Publishable key i klienten. Databasepassord og secret/service-role keys skal ikke brukes i klienten.
 
-
-## v24
-- Forbedret knapp for å åpne originaloppskrift fra nettlenke.
+Fast handel lagres i `week_plans.days` som en del av familieplanen, slik at funksjonen ikke krever en ny Supabase-tabell.

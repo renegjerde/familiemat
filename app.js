@@ -34,7 +34,46 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','🏠','Uke')}${nav('recipes','🍝','Oppskrifter')}${nav('shopping','🛒','Handleliste')}${nav('pantry','🧺','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
-function weekView(){return `<div class="section-title">Denne uka</div>${data.week.map((r,i)=>`<div class="card day"><div class="dayname">${days[i]}</div>${r?`<div class="meal"><strong>${esc(r)}</strong><small>${esc(data.recipes.find(x=>x.name===r)?.servings||4)} porsjoner</small></div><div class="actions"><button class="btn secondary" onclick="choose(${i})">Bytt</button><button class="btn ghost" onclick="removeFromWeek(${i})">Fjern</button></div>`:`<div class="meal"><strong>Ingen middag valgt</strong><small>Hva skal dere spise?</small></div><button class="btn" onclick="choose(${i})">Velg</button>`}</div>`).join('')}<div class="card"><strong>Tips</strong><p class="small">Handlelisten slår sammen like ingredienser fra alle middagene. Basisvarer du markerer som «går tom» blir også lagt til.</p></div>`}
+function weekView(){return `<div class="section-title"><span>Denne uka</span><button class="btn secondary" style="margin-left:auto" onclick="newWeek()">✨ Ny uke</button></div><div class="actions" style="margin-bottom:12px"><button class="btn full" onclick="suggestWeek()">✨ Foreslå ukemeny</button></div>${data.week.map((r,i)=>`<div class="card day"><div class="dayname">${days[i]}</div>${r?`<div class="meal"><strong>${esc(r)}</strong><small>${esc(data.recipes.find(x=>x.name===r)?.servings||4)} porsjoner</small></div><div class="actions"><button class="btn secondary" onclick="choose(${i})">Bytt</button><button class="btn ghost" onclick="removeFromWeek(${i})">Fjern</button></div>`:`<div class="meal"><strong>Ingen middag valgt</strong><small>Hva skal dere spise?</small></div><button class="btn" onclick="choose(${i})">Velg</button>`}</div>`).join('')}<div class="card"><strong>Tips</strong><p class="small">Handlelisten slår sammen like ingredienser fra alle middagene. Basisvarer du markerer som «går tom» blir også lagt til.</p></div>`}
+
+function newWeek(){if(!data.week.some(Boolean))return; if(confirm('Starte en ny uke? Dette fjerner middagene fra ukeplanen og oppdaterer handlelisten. Oppskrifter og basisvarer beholdes.')){data.week=Array(7).fill(null);syncShopping();save();render()}}
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5)}
+function eligibleRecipes(day){return data.recipes.filter(r=>{const ds=Array.isArray(r.days)?r.days:[];return !ds.length||ds.includes(day)})}
+function suggestWeek(){
+ const recipes=data.recipes.filter(r=>r&&r.name);
+ const fish=recipes.filter(r=>(r.categories||[]).includes('Fisk'));
+ if(fish.length<2)return alert('For å foreslå en uke med to ulike fiskemiddager trenger du minst to oppskrifter som er kategorisert som «Fisk».');
+ const fishSlots=[];
+ for(let d=0;d<7;d++) if(eligibleRecipes(d).some(r=>fish.includes(r))) fishSlots.push(d);
+ if(fishSlots.length<2)return alert('Jeg finner ikke to ulike dager der fiskerettene dine er aktuelle. Sjekk «Aktuelle dager» på fiskemiddagene.');
+ let best=null;
+ for(let tries=0;tries<200&&!best;tries++){
+   const daysForFish=shuffle(fishSlots).slice(0,2);
+   const plan=Array(7).fill(null); const used=new Set(); let ok=true;
+   for(const d of daysForFish){
+     const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!used.has(r)));
+     if(!choices.length){ok=false;break;} const r=choices[0]; plan[d]=r; used.add(r);
+   }
+   if(!ok)continue;
+   for(let d=0;d<7;d++){
+     if(plan[d])continue;
+     const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r)));
+     if(choices.length){plan[d]=choices[0];used.add(choices[0]);}
+   }
+   if(plan.every(Boolean))best=plan;
+ }
+ if(!best){
+   // Fallback: allow a repeated non-fish recipe when there are fewer than seven unique eligible recipes.
+   const plan=Array(7).fill(null); const used=new Set();
+   const fishDayChoices=shuffle(fishSlots);
+   const chosenFish=[];
+   for(const d of fishDayChoices){const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!chosenFish.includes(r)));if(choices.length){plan[d]=choices[0];chosenFish.push(choices[0]);used.add(choices[0]);if(chosenFish.length===2)break;}}
+   if(chosenFish.length<2)return alert('Jeg klarte ikke å finne to ulike fiskemiddager som passer på ulike dager.');
+   for(let d=0;d<7;d++) if(!plan[d]){const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r)));plan[d]=choices[0]||shuffle(eligibleRecipes(d))[0]||null;if(plan[d])used.add(plan[d]);}
+   best=plan;
+ }
+ data.week=best.map(r=>r?r.name:null);syncShopping();save();render();
+}
 function recipeSort(a,b){return String(a.name).localeCompare(String(b.name),'nb',{sensitivity:'base'})}
 function recipeBadges(r){const cats=(r.categories||[]).map(c=>`<span class="pill">${esc(c)}</span>`).join('');const ds=(r.days||[]).sort((a,b)=>a-b).map(i=>days[i]).join(', ');return `${cats}${ds?`<span class="pill">📅 ${esc(ds)}</span>`:'<span class="pill">📅 Alle dager</span>'}`}
 function recipesView(){const recipes=[...data.recipes].sort(recipeSort);return `<div class="section-title">Oppskrifter</div><button class="btn full" onclick="newRecipe()">＋ Ny oppskrift</button><button class="btn full secondary" onclick="webRecipe()">🌐 Oppskrift fra nett</button>${recipes.map(r=>{const i=data.recipes.indexOf(r);return `<div class="card"><div class="recipe-head"><div><div class="recipe-title">${esc(r.name)}</div><div class="small">${r.servings} porsjoner</div><div class="pills">${recipeBadges(r)}</div></div>${r.url?`<a class="pill" href="${esc(r.url)}" target="_blank">Nettlenke</a>`:''}</div><ul class="ingredients">${r.ingredients.map(x=>`<li>${esc(x[1])} ${esc(x[2])} ${esc(x[0])}</li>`).join('')}</ul><div class="actions"><button class="btn" onclick="addRecipeToWeek(${i})">＋ Legg til i uka</button><button class="btn secondary" onclick="editRecipe(${i})">Rediger</button><button class="btn ghost" onclick="deleteRecipe(${i})">Slett</button></div></div>`}).join('')}`}
@@ -96,5 +135,5 @@ function parseRecipeMarkdown(text){const lines=String(text||'').split(/\r?\n/);l
 async function importWebRecipe(){const input=document.getElementById('weburl');const url=(input?.value||'').trim();if(!/^https?:\/\//i.test(url))return alert('Lim inn en gyldig nettadresse som starter med https:// eller http://.');const btn=document.querySelector('#modal .sheet .btn.full');if(btn){btn.disabled=true;btn.textContent='Henter oppskrift…';}try{const reader='https://r.jina.ai/'+url;const res=await fetch(reader,{headers:{Accept:'application/json'}});if(!res.ok)throw new Error('Reader HTTP '+res.status);const raw=await res.text();let payload;try{payload=JSON.parse(raw)}catch{payload={data:{content:raw}}}const d=payload.data||payload;const content=d.content||raw;const parsed=parseRecipeMarkdown(content);let name=d.title||'';if(!name){const m=content.match(/^#\s+(.+)$/m);name=m?m[1].trim():''}if(!parsed.ingredients.length)throw new Error('Fant ingen ingredienser på siden.');recipeForm(-1,null,{name:name||'Importert oppskrift',servings:parsed.servings||4,ingredients:parsed.ingredients,instructions:parsed.instructions,url});}catch(err){console.error(err);alert('Jeg klarte ikke å hente ingrediensene automatisk fra denne siden. Nettstedet kan blokkere import, eller oppskriften kan bruke en struktur Familiemat ikke kjenner igjen ennå. Du kan fortsatt legge inn oppskriften manuelt.');}finally{if(btn){btn.disabled=false;btn.textContent='Hent oppskrift';}}}
 function modal(inner){document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal" onclick="if(event.target.id==='modal')closeModal()"><div class="sheet">${inner}<button class="btn full secondary" onclick="closeModal()">Avbryt</button></div></div>`)}
 function closeModal(){document.getElementById('modal')?.remove()}
-window.go=go;window.choose=choose;window.setDay=setDay;window.removeFromWeek=removeFromWeek;window.addRecipeToWeek=addRecipeToWeek;window.newRecipeForDay=newRecipeForDay;window.buildShopping=buildShopping;window.toggleShop=toggleShop;window.clearBought=clearBought;window.togglePantry=togglePantry;window.addPantry=addPantry;window.savePantry=savePantry;window.deletePantry=deletePantry;window.newRecipe=newRecipe;window.editRecipe=editRecipe;window.deleteRecipe=deleteRecipe;window.webRecipe=webRecipe;window.importWebRecipe=importWebRecipe;window.recipeForm=recipeForm;window.addIng=addIng;window.saveRecipe=saveRecipe;window.closeModal=closeModal;
+window.go=go;window.newWeek=newWeek;window.suggestWeek=suggestWeek;window.choose=choose;window.setDay=setDay;window.removeFromWeek=removeFromWeek;window.addRecipeToWeek=addRecipeToWeek;window.newRecipeForDay=newRecipeForDay;window.buildShopping=buildShopping;window.toggleShop=toggleShop;window.clearBought=clearBought;window.togglePantry=togglePantry;window.addPantry=addPantry;window.savePantry=savePantry;window.deletePantry=deletePantry;window.newRecipe=newRecipe;window.editRecipe=editRecipe;window.deleteRecipe=deleteRecipe;window.webRecipe=webRecipe;window.importWebRecipe=importWebRecipe;window.recipeForm=recipeForm;window.addIng=addIng;window.saveRecipe=saveRecipe;window.closeModal=closeModal;
 if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});render();

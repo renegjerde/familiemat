@@ -1,5 +1,5 @@
-const CACHE='familiemat-v19';
-const ASSETS=['./','./index.html?v=18','./styles.css?v=18','./app.js?v=18','./manifest.json'];
+const CACHE='familiemat-v20';
+const ASSETS=['./','./index.html?v=20','./styles.css?v=20','./app.js?v=20','./manifest.json'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!=='https://renegjerde.github.io' && !url.href.startsWith('https://cdn.jsdelivr.net/'))return;event.respondWith(fetch(event.request,{cache:'no-store'}).then(response=>{if(response&&response.ok&&url.origin==='https://renegjerde.github.io'){const copy=response.clone();caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{});}return response;}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html?v=18'))));});
+self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!=='https://renegjerde.github.io' && !url.href.startsWith('https://cdn.jsdelivr.net/'))return;event.respondWith(fetch(event.request,{cache:'no-store'}).then(response=>{if(response&&response.ok&&url.origin==='https://renegjerde.github.io'){const copy=response.clone();caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{});}return response;}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html?v=20'))));});

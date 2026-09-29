@@ -29,11 +29,12 @@ function load(){
    x.recipes=Array.isArray(x.recipes)?x.recipes:[];
    x.pantry=Array.isArray(x.pantry)?x.pantry:starterPantry;
    x.shopping=Array.isArray(x.shopping)?x.shopping:[];
+   x.weekHistory=Array.isArray(x.weekHistory)?x.weekHistory:[];
    x.recipes=x.recipes.map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
    return x;
   }
  }catch(e){}
- return{week:Array(7).fill(null),recipes:starterRecipes,pantry:starterPantry,shopping:[]}
+ return{week:Array(7).fill(null),recipes:starterRecipes,pantry:starterPantry,shopping:[],weekHistory:[]}
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function saveAndSync(){save();queueCloudSync()}
@@ -103,40 +104,92 @@ function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go(
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){return `<div class="section-title"><span>Denne uka</span><button class="btn secondary" style="margin-left:auto" onclick="newWeek()">✨ Ny uke</button></div><div class="actions" style="margin-bottom:12px"><button class="btn full" onclick="suggestWeek()">✨ Foreslå ukemeny</button></div>${data.week.map((r,i)=>`<div class="card day"><div class="dayname">${days[i]}</div>${r?`<div class="meal"><strong>${esc(r)}</strong><small>${esc(data.recipes.find(x=>x.name===r)?.servings||4)} porsjoner</small></div><div class="actions"><button class="btn secondary" onclick="choose(${i})">Bytt</button><button class="btn ghost" onclick="removeFromWeek(${i})">Fjern</button></div>`:`<div class="meal"><strong>Ingen middag valgt</strong><small>Hva skal dere spise?</small></div><button class="btn" onclick="choose(${i})">Velg</button>`}</div>`).join('')}<div class="card"><strong>Tips</strong><p class="small">Handlelisten slår sammen like ingredienser fra alle middagene. Basisvarer du markerer som «går tom» blir også lagt til.</p></div>`}
 
-function newWeek(){if(!data.week.some(Boolean))return; if(confirm('Starte en ny uke? Dette fjerner middagene fra ukeplanen og oppdaterer handlelisten. Oppskrifter og basisvarer beholdes.')){data.week=Array(7).fill(null);syncShopping();saveAndSync();render()}}
+async function archiveCurrentWeek(){
+ const meals=[...data.week];
+ if(!meals.some(Boolean))return;
+ const key=currentWeekKey();
+ const archivedAt=new Date().toISOString();
+ if(!Array.isArray(data.weekHistory))data.weekHistory=[];
+ const localKey=`${key}-${archivedAt}`;
+ data.weekHistory.unshift({weekKey:key,archivedAt,meals});
+ data.weekHistory=data.weekHistory.slice(0,24);
+ if(familyId&&authSession&&!cloudBusy){
+   const archiveKey=`${key}__archive__${Date.now()}`;
+   const res=await cloud.from('week_plans').insert({family_id:familyId,week_key:archiveKey,days:{meals,archivedWeek:key,archivedAt}});
+   if(res.error)console.error('Kunne ikke arkivere uke i skyen:',res.error);
+ }
+}
+async function newWeek(){
+ if(!data.week.some(Boolean))return;
+ if(confirm('Starte en ny uke? Den nåværende ukeplanen arkiveres automatisk, slik at Familiemat kan bruke historikken til å lage mer varierte menyer. Oppskrifter og basisvarer beholdes.')){
+   await archiveCurrentWeek();
+   data.week=Array(7).fill(null);
+   syncShopping();
+   saveAndSync();
+   render();
+ }
+}
 function shuffle(a){return [...a].sort(()=>Math.random()-0.5)}
 function eligibleRecipes(day){return data.recipes.filter(r=>{const ds=Array.isArray(r.days)?r.days:[];return !ds.length||ds.includes(day)})}
-function suggestWeek(){
+async function recentMealNames(){
+ const names=new Set();
+ const cutoff=Date.now()-28*86400000;
+ for(const h of (data.weekHistory||[])){
+   const t=Date.parse(h.archivedAt||'');
+   if(!t||t>=cutoff) for(const n of (h.meals||[]))if(n)names.add(n);
+ }
+ if(familyId&&authSession&&cloud){
+   try{
+     const res=await cloud.from('week_plans').select('week_key,days,updated_at').eq('family_id',familyId).order('updated_at',{ascending:false}).limit(30);
+     if(!res.error){
+       for(const row of (res.data||[])){
+         if(row.week_key===currentWeekKey())continue;
+         const meals=Array.isArray(row.days)?row.days:(row.days?.meals||[]);
+         for(const n of meals)if(n)names.add(n);
+       }
+     }
+   }catch(e){console.warn('Historikk kunne ikke hentes',e)}
+ }
+ return names;
+}
+async function suggestWeek(){
  const recipes=data.recipes.filter(r=>r&&r.name);
  const fish=recipes.filter(r=>(r.categories||[]).includes('Fisk'));
  if(fish.length<2)return alert('For å foreslå en uke med to ulike fiskemiddager trenger du minst to oppskrifter som er kategorisert som «Fisk».');
  const fishSlots=[];
  for(let d=0;d<7;d++) if(eligibleRecipes(d).some(r=>fish.includes(r))) fishSlots.push(d);
  if(fishSlots.length<2)return alert('Jeg finner ikke to ulike dager der fiskerettene dine er aktuelle. Sjekk «Aktuelle dager» på fiskemiddagene.');
+ const recent=await recentMealNames();
+ const freshScore=r=>recent.has(r.name)?1:0;
  let best=null;
- for(let tries=0;tries<200&&!best;tries++){
+ for(let tries=0;tries<300&&!best;tries++){
    const daysForFish=shuffle(fishSlots).slice(0,2);
    const plan=Array(7).fill(null); const used=new Set(); let ok=true;
    for(const d of daysForFish){
-     const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!used.has(r)));
+     const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
      if(!choices.length){ok=false;break;} const r=choices[0]; plan[d]=r; used.add(r);
    }
    if(!ok)continue;
    for(let d=0;d<7;d++){
      if(plan[d])continue;
-     const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r)));
+     const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
      if(choices.length){plan[d]=choices[0];used.add(choices[0]);}
    }
    if(plan.every(Boolean))best=plan;
  }
  if(!best){
-   // Fallback: allow a repeated non-fish recipe when there are fewer than seven unique eligible recipes.
    const plan=Array(7).fill(null); const used=new Set();
-   const fishDayChoices=shuffle(fishSlots);
-   const chosenFish=[];
-   for(const d of fishDayChoices){const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!chosenFish.includes(r)));if(choices.length){plan[d]=choices[0];chosenFish.push(choices[0]);used.add(choices[0]);if(chosenFish.length===2)break;}}
+   const fishDayChoices=shuffle(fishSlots); const chosenFish=[];
+   for(const d of fishDayChoices){
+     const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!chosenFish.includes(r))).sort((a,b)=>freshScore(a)-freshScore(b));
+     if(choices.length){plan[d]=choices[0];chosenFish.push(choices[0]);used.add(choices[0]);if(chosenFish.length===2)break;}
+   }
    if(chosenFish.length<2)return alert('Jeg klarte ikke å finne to ulike fiskemiddager som passer på ulike dager.');
-   for(let d=0;d<7;d++) if(!plan[d]){const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r)));plan[d]=choices[0]||shuffle(eligibleRecipes(d))[0]||null;if(plan[d])used.add(plan[d]);}
+   for(let d=0;d<7;d++) if(!plan[d]){
+     const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
+     plan[d]=choices[0]||shuffle(eligibleRecipes(d))[0]||null;
+     if(plan[d])used.add(plan[d]);
+   }
    best=plan;
  }
  data.week=best.map(r=>r?r.name:null);syncShopping();saveAndSync();render();

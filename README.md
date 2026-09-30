@@ -1,6 +1,10 @@
-# 🍲 Familiemat v28
+# 🍲 Familiemat v29
 
 Familiesynkronisering med Supabase, autosave og tryggere deling av alle familie-data.
+
+## Nytt i v29
+- Finpusset oppskriftslayout: mindre Familie-knapp, kompakte dagintervaller, ryddigere handlingsområde og mer luft i ingredienslisten.
+- Slett ligger nå i en egen «⋯»-meny for å gjøre destruktive handlinger mindre fremtredende.
 
 ## Nytt i v28
 - Faste handlevarer har egen Supabase-tabell og synkroniseres automatisk mellom enheter.

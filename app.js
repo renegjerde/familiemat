@@ -16,7 +16,7 @@ const exampleRecipeNames=new Set([
  'Spaghetti bolognese','Taco','Laks med poteter','Kyllinggryte','Hjemmelaget pizza','Fiskekaker med poteter'
 ]);
 const starterPantry=['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir'].map(name=>({name,low:false}));
-let data=load(); let page='week';
+let data=load(); let page='week'; let showWeekHistory=false;
 function load(){
  try{
   let x=JSON.parse(localStorage.getItem(KEY));
@@ -60,6 +60,19 @@ function joinFamilyPrompt(){modal(`<h2>🔑 Bli med i familien</h2><p class="sma
 async function createFamily(){const {data,error}=await cloud.rpc('create_family',{p_name:'Familiemat'});if(error)return alert(error.message);familyId=data?.[0]?.family_id;if(!familyId)return alert('Kunne ikke opprette familien.');localStorage.setItem(FAMILY_KEY,familyId);await migrateLocalToCloud();closeModal();await subscribeRealtime();await refreshRemote();alert(`Familien er opprettet. Familiekoden er ${data[0].join_code}. Del denne koden med samboeren din.`);render();}
 async function joinFamily(){const code=document.getElementById('joinCode')?.value.trim();if(!code)return alert('Skriv inn familiekoden.');const {data,error}=await cloud.rpc('join_family',{p_join_code:code});if(error)return alert(error.message);familyId=data;localStorage.setItem(FAMILY_KEY,familyId);closeModal();await subscribeRealtime();await refreshRemote();alert('Du er nå koblet til familien.');render();}
 async function showFamilyModal(fid){const {data:family}=await cloud.from('families').select('name,join_code').eq('id',fid).maybeSingle();const code=family?.join_code||'—';modal(`<h2>☁️ ${esc(family?.name||'Familiemat')}</h2><p class="small">Familiekode: <strong>${esc(code)}</strong></p><p class="small">Endringer synkroniseres mellom telefonene når dere er på nett.</p><button class="btn full secondary" onclick="syncLocalChanges().then(()=>{closeModal();render()})">🔄 Synkroniser nå</button><button class="btn full secondary" onclick="signOut().then(()=>closeModal())">Logg ut</button>`)}
+function isoWeekInfo(date=new Date()){
+ const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+ const day=(d.getDay()+6)%7;
+ const monday=new Date(d); monday.setDate(d.getDate()-day);
+ const sunday=new Date(monday); sunday.setDate(monday.getDate()+6);
+ const thursday=new Date(monday); thursday.setDate(monday.getDate()+3);
+ const year=thursday.getFullYear();
+ const jan4=new Date(year,0,4);
+ const firstMonday=new Date(jan4); firstMonday.setDate(jan4.getDate()-((jan4.getDay()+6)%7));
+ const week=Math.floor((monday-firstMonday)/604800000)+1;
+ const fmt=x=>x.toLocaleDateString('nb-NO',{day:'numeric',month:'short'});
+ return {key:`${year}-W${String(week).padStart(2,'0')}`,label:`Uke ${week} · ${fmt(monday)}–${fmt(sunday)}`};
+}
 function currentWeekKey(){const d=new Date();const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-day);const year=date.getUTCFullYear();const yearStart=new Date(Date.UTC(year,0,1));const week=Math.ceil((((date-yearStart)/86400000)+1)/7);return `${year}-W${String(week).padStart(2,'0')}`;}
 function newId(){return (crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3)|8;return v.toString(16)});}
 
@@ -155,16 +168,60 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
-function weekView(){return `<div class="section-title"><span>Denne uka</span><button class="btn secondary" style="margin-left:auto" onclick="newWeek()">✨ Ny uke</button></div><div class="actions" style="margin-bottom:12px"><button class="btn full" onclick="suggestWeek()">✨ Foreslå ukemeny</button></div>${data.week.map((r,i)=>`<div class="card day"><div class="dayname">${days[i]}</div>${r?`<div class="meal"><strong>${esc(r)}</strong><small>${esc(data.recipes.find(x=>x.name===r)?.servings||4)} porsjoner</small></div><div class="day-actions"><button class="btn secondary" onclick="choose(${i})">Bytt</button><button class="btn ghost" onclick="removeFromWeek(${i})">Fjern</button></div>`:`<div class="meal"><strong>Ingen middag valgt</strong><small>Hva skal dere spise?</small></div><button class="btn" onclick="choose(${i})">Velg</button>`}</div>`).join('')}<div class="card"><strong>Tips</strong><p class="small">Handlelisten slår sammen like ingredienser fra alle middagene. Basisvarer du markerer som «går tom» blir også lagt til.</p></div>`}
+function weekView(){
+ const info=isoWeekInfo();
+ const historyButton=`<button class="btn history-toggle" onclick="toggleWeekHistory()">${showWeekHistory?'Skjul historikk':'📚 Tidligere uker'}</button>`;
+ return `<div class="week-heading"><div><h2>Denne uka</h2><div class="week-date">${info.label}</div></div><button class="btn secondary new-week-btn" onclick="newWeek()">＋ Ny uke</button></div>
+ <div class="week-tools">${historyButton}</div>
+ ${showWeekHistory?`<section class="card history-panel"><h3>Ukehistorikk</h3>${renderWeekHistory()}</section>`:''}
+ <div class="actions" style="margin-bottom:12px"><button class="btn full" onclick="suggestWeek()">✨ Foreslå ukemeny</button></div>
+ ${data.week.map((r,i)=>`<div class="card day"><div class="dayname">${days[i]}</div>${r?`<div class="meal"><strong>${esc(r)}</strong><small>${esc(data.recipes.find(x=>x.name===r)?.servings||4)} porsjoner</small></div><div class="day-actions"><button class="btn secondary" onclick="choose(${i})">Bytt</button><button class="btn ghost" onclick="removeFromWeek(${i})">Fjern</button></div>`:`<div class="meal"><strong>Ingen middag valgt</strong><small>Hva skal dere spise?</small></div><button class="btn" onclick="choose(${i})">Velg</button>`}</div>`).join('')}
+ <div class="card"><strong>Tips</strong><p class="small">Handlelisten slår sammen like ingredienser fra alle middagene. Basisvarer du markerer som «går tom» blir også lagt til.</p></div>`;
+}
+function renderWeekHistory(){
+ const entries=[...(data.weekHistory||[])].sort((a,b)=>String(b.archivedAt||'').localeCompare(String(a.archivedAt||'')));
+ if(!entries.length)return '<p class="small">Ingen arkiverte uker ennå. Når du starter en ny uke, lagres den forrige her.</p>';
+ return entries.map((h,i)=>{const names=(h.meals||[]).map((m,j)=>m?`${days[j]}: ${esc(m)}`:null).filter(Boolean);return `<div class="history-entry"><div><strong>${esc(h.weekLabel||h.weekKey||'Tidligere uke')}</strong><p class="small">${names.length?names.join(' · '):'Ingen middager registrert'}</p></div><button class="btn secondary" onclick="restoreArchivedWeek(${i})">Bruk uke</button></div>`}).join('');
+}
+async function toggleWeekHistory(){
+ showWeekHistory=!showWeekHistory;render();
+ if(!showWeekHistory||!familyId||!authSession||!cloud)return;
+ try{
+  const res=await cloud.from('week_plans').select('week_key,days,updated_at').eq('family_id',familyId).order('updated_at',{ascending:false}).limit(100);
+  if(res.error)throw res.error;
+  const known=new Set((data.weekHistory||[]).map(h=>h.archivedAt||`${h.weekKey}:${(h.meals||[]).join('|')}`));
+  for(const row of (res.data||[])){
+   const payload=row.days||{};
+   if(!payload.archivedWeek||!Array.isArray(payload.meals))continue;
+   const archivedAt=payload.archivedAt||row.updated_at;
+   const dedupe=archivedAt||`${payload.archivedWeek}:${payload.meals.join('|')}`;
+   if(known.has(dedupe))continue;
+   data.weekHistory.push({weekKey:payload.archivedWeek,weekLabel:payload.archivedWeek,archivedAt,meals:payload.meals});
+   known.add(dedupe);
+  }
+  data.weekHistory.sort((a,b)=>String(b.archivedAt||'').localeCompare(String(a.archivedAt||'')));
+  data.weekHistory=data.weekHistory.slice(0,100);save();render();
+ }catch(e){console.warn('Kunne ikke hente ukehistorikk fra skyen',e)}
+}
+async function restoreArchivedWeek(i){
+ const entries=[...(data.weekHistory||[])].sort((a,b)=>String(b.archivedAt||'').localeCompare(String(a.archivedAt||'')));
+ const item=entries[i]; if(!item)return;
+ if(!confirm('Erstatte den aktive ukeplanen med denne arkiverte uken? Den aktive planen arkiveres ikke automatisk.'))return;
+ data.week=[...(item.meals||Array(7).fill(null))].slice(0,7);
+ while(data.week.length<7)data.week.push(null);
+ syncShopping();saveAndSync();showWeekHistory=false;render();
+}
+
 
 async function archiveCurrentWeek(){
  const meals=[...data.week];
  if(!meals.some(Boolean))return;
- const key=currentWeekKey();
+ const info=isoWeekInfo();
+ const key=info.key;
  const archivedAt=new Date().toISOString();
  if(!Array.isArray(data.weekHistory))data.weekHistory=[];
  const localKey=`${key}-${archivedAt}`;
- data.weekHistory.unshift({weekKey:key,archivedAt,meals});
+ data.weekHistory.unshift({weekKey:key,weekLabel:info.label,archivedAt,meals});
  data.weekHistory=data.weekHistory.slice(0,24);
  if(familyId&&authSession&&!cloudBusy){
    const archiveKey=`${key}__archive__${Date.now()}`;
@@ -174,7 +231,7 @@ async function archiveCurrentWeek(){
 }
 async function newWeek(){
  if(!data.week.some(Boolean))return;
- if(confirm('Starte en ny uke? Den nåværende ukeplanen arkiveres automatisk, slik at Familiemat kan bruke historikken til å lage mer varierte menyer. Oppskrifter og basisvarer beholdes.')){
+ if(confirm('Starte en ny uke nå? Den aktive ukeplanen arkiveres, og middagsplanen tømmes. Dette skjer bare når du bekrefter. Oppskrifter og basisvarer beholdes.')){
    await archiveCurrentWeek();
    data.week=Array(7).fill(null);
    syncShopping();
@@ -313,6 +370,6 @@ function parseRecipeMarkdown(text){const lines=String(text||'').split(/\r?\n/);l
 async function importWebRecipe(){const input=document.getElementById('weburl');const url=(input?.value||'').trim();if(!/^https?:\/\//i.test(url))return alert('Lim inn en gyldig nettadresse som starter med https:// eller http://.');const btn=document.querySelector('#modal .sheet .btn.full');if(btn){btn.disabled=true;btn.textContent='Henter oppskrift…';}try{const reader='https://r.jina.ai/'+url;const res=await fetch(reader,{headers:{Accept:'application/json'}});if(!res.ok)throw new Error('Reader HTTP '+res.status);const raw=await res.text();let payload;try{payload=JSON.parse(raw)}catch{payload={data:{content:raw}}}const d=payload.data||payload;const content=d.content||raw;const parsed=parseRecipeMarkdown(content);let name=d.title||'';if(!name){const m=content.match(/^#\s+(.+)$/m);name=m?m[1].trim():''}if(!parsed.ingredients.length)throw new Error('Fant ingen ingredienser på siden.');recipeForm(-1,null,{name:name||'Importert oppskrift',servings:parsed.servings||4,ingredients:parsed.ingredients,instructions:parsed.instructions,url});}catch(err){console.error(err);alert('Jeg klarte ikke å hente ingrediensene automatisk fra denne siden. Nettstedet kan blokkere import, eller oppskriften kan bruke en struktur Familiemat ikke kjenner igjen ennå. Du kan fortsatt legge inn oppskriften manuelt.');}finally{if(btn){btn.disabled=false;btn.textContent='Hent oppskrift';}}}
 function modal(inner){document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal" onclick="if(event.target.id==='modal')closeModal()"><div class="sheet">${inner}<button class="btn full secondary" onclick="closeModal()">Avbryt</button></div></div>`)}
 function closeModal(){document.getElementById('modal')?.remove()}
-window.go=go;window.newWeek=newWeek;window.addFixedShopping=addFixedShopping;window.saveFixedShopping=saveFixedShopping;window.toggleFixedShopping=toggleFixedShopping;window.deleteFixedShopping=deleteFixedShopping;window.addFixedShopping=addFixedShopping;window.saveFixedShopping=saveFixedShopping;window.toggleFixedShopping=toggleFixedShopping;window.deleteFixedShopping=deleteFixedShopping;window.suggestWeek=suggestWeek;window.choose=choose;window.setDay=setDay;window.removeFromWeek=removeFromWeek;window.addRecipeToWeek=addRecipeToWeek;window.newRecipeForDay=newRecipeForDay;window.buildShopping=buildShopping;window.toggleShop=toggleShop;window.clearBought=clearBought;window.togglePantry=togglePantry;window.addPantry=addPantry;window.savePantry=savePantry;window.deletePantry=deletePantry;window.newRecipe=newRecipe;window.editRecipe=editRecipe;window.deleteRecipe=deleteRecipe;window.webRecipe=webRecipe;window.importWebRecipe=importWebRecipe;window.recipeForm=recipeForm;window.addIng=addIng;window.saveRecipe=saveRecipe;window.closeModal=closeModal;window.openAccount=openAccount;window.showAuthModal=showAuthModal;window.signUp=signUp;window.signIn=signIn;window.signOut=signOut;window.createFamily=createFamily;window.joinFamilyPrompt=joinFamilyPrompt;window.joinFamily=joinFamily;window.refreshRemote=refreshRemote;
+window.go=go;window.newWeek=newWeek;window.toggleWeekHistory=toggleWeekHistory;window.restoreArchivedWeek=restoreArchivedWeek;window.addFixedShopping=addFixedShopping;window.saveFixedShopping=saveFixedShopping;window.toggleFixedShopping=toggleFixedShopping;window.deleteFixedShopping=deleteFixedShopping;window.addFixedShopping=addFixedShopping;window.saveFixedShopping=saveFixedShopping;window.toggleFixedShopping=toggleFixedShopping;window.deleteFixedShopping=deleteFixedShopping;window.suggestWeek=suggestWeek;window.choose=choose;window.setDay=setDay;window.removeFromWeek=removeFromWeek;window.addRecipeToWeek=addRecipeToWeek;window.newRecipeForDay=newRecipeForDay;window.buildShopping=buildShopping;window.toggleShop=toggleShop;window.clearBought=clearBought;window.togglePantry=togglePantry;window.addPantry=addPantry;window.savePantry=savePantry;window.deletePantry=deletePantry;window.newRecipe=newRecipe;window.editRecipe=editRecipe;window.deleteRecipe=deleteRecipe;window.webRecipe=webRecipe;window.importWebRecipe=importWebRecipe;window.recipeForm=recipeForm;window.addIng=addIng;window.saveRecipe=saveRecipe;window.closeModal=closeModal;window.openAccount=openAccount;window.showAuthModal=showAuthModal;window.signUp=signUp;window.signIn=signIn;window.signOut=signOut;window.createFamily=createFamily;window.joinFamilyPrompt=joinFamilyPrompt;window.joinFamily=joinFamily;window.refreshRemote=refreshRemote;
 if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
 (async()=>{render();if(cloud){const {data:{session}}=await cloud.auth.getSession();authSession=session;if(session){await afterSignedIn();}render();cloud.auth.onAuthStateChange(async(_e,s)=>{authSession=s;if(s&&!familyId)await afterSignedIn();render();});}})();

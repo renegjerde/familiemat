@@ -1,4 +1,4 @@
-const CACHE='familiemat-v30';
+const CACHE='familiemat-v31';
 const ASSETS=['./','./index.html?v=27','./styles.css?v=27','./app.js?v=27','./manifest.json'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

@@ -69,7 +69,10 @@ function isoWeekInfo(date=new Date()){
  const year=thursday.getFullYear();
  const jan4=new Date(year,0,4);
  const firstMonday=new Date(jan4); firstMonday.setDate(jan4.getDate()-((jan4.getDay()+6)%7));
- const week=Math.floor((monday-firstMonday)/604800000)+1;
+ // Use calendar-day arithmetic in UTC so daylight-saving transitions cannot shift the week number.
+ const mondayUTC=Date.UTC(monday.getFullYear(),monday.getMonth(),monday.getDate());
+ const firstMondayUTC=Date.UTC(firstMonday.getFullYear(),firstMonday.getMonth(),firstMonday.getDate());
+ const week=Math.floor((mondayUTC-firstMondayUTC)/604800000)+1;
  const fmt=x=>x.toLocaleDateString('nb-NO',{day:'numeric',month:'short'});
  return {key:`${year}-W${String(week).padStart(2,'0')}`,label:`Uke ${week} · ${fmt(monday)}–${fmt(sunday)}`};
 }

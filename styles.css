@@ -39,3 +39,8 @@
 .history-entry p{margin:5px 0 0;line-height:1.4}
 .history-entry .btn{font-size:12px;padding:8px 10px;white-space:nowrap}
 @media(max-width:390px){.week-heading{gap:10px}.week-heading h2{font-size:20px}.new-week-btn{padding:8px 10px;font-size:12px}.history-entry{align-items:flex-start}}
+
+/* v34: editable fixed-shopping items */
+.fixed-item-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.fixed-item-actions .smallbtn{padding:8px 10px;font-size:12px}
+@media(max-width:390px){.fixed-item-actions{gap:4px}.fixed-item-actions .smallbtn{padding:7px 8px;font-size:11px}}

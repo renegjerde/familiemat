@@ -107,7 +107,7 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
  const localsWithoutId=data.recipes.filter(r=>!r.id);
  data.recipes=[...localById.values(),...localsWithoutId];
  const pantryById=new Map(data.pantry.filter(p=>p.id).map(p=>[p.id,p]));
- for(const p of (pp.data||[])){if(pending.pantry.includes(p.id))continue;pantryById.set(p.id,{id:p.id,name:p.name,low:!!p.low,category:pantryById.get(p.id)?.category||categorizeIngredient(p.name)});}
+ for(const p of (pp.data||[])){if(pending.pantry.includes(p.id))continue;const local=pantryById.get(p.id);pantryById.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}
  const pantryWithoutId=data.pantry.filter(p=>!p.id);
  data.pantry=[...pantryById.values(),...pantryWithoutId];
  const plan=ww.data?.days;
@@ -159,7 +159,7 @@ async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;c
  if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
  const ff=await fetchFixedShopping();
  const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){if(exampleRecipeNames.has(r.name))continue;recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
- const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){pantryMap.set(p.id,{id:p.id,name:p.name,low:!!p.low,category:pantryMap.get(p.id)?.category||categorizeIngredient(p.name)});}data.pantry=[...pantryMap.values()];
+ const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){const local=pantryMap.get(p.id);pantryMap.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}data.pantry=[...pantryMap.values()];
  const fixedMap2=new Map((data.fixedShopping||[]).map(x=>[x.id,x])); for(const f of (ff.data||[])){fixedMap2.set(f.id,{id:f.id,name:f.name,qty:Number(f.qty)||1,unit:f.unit||'stk',category:f.category||categorizeIngredient(f.name),active:f.active!==false});} data.fixedShopping=[...fixedMap2.values()]; fixedTableReady=true;
  if(ww.data?.days){const plan=ww.data.days;applyPantryCategories(plan.pantryCategories);const remoteDeleted=new Set(Array.isArray(plan.fixedShoppingDeleted)?plan.fixedShoppingDeleted:[]);const fixedMap=new Map((data.fixedShopping||[]).map(x=>[x.id,x]));for(const f of (Array.isArray(plan.fixedShopping)?plan.fixedShopping:[])){if(f.id&&!remoteDeleted.has(f.id))fixedMap.set(f.id,{id:f.id,name:f.name,qty:f.qty??1,unit:f.unit||'stk',category:f.category||categorizeIngredient(f.name),active:f.active!==false});}data.fixedShopping=[...fixedMap.values()].filter(x=>!remoteDeleted.has(x.id));}
  syncShopping();save();
@@ -175,7 +175,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v58</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v59</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){

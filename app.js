@@ -166,7 +166,7 @@ async function subscribeRealtime(){if(!familyId||!authSession)return;if(realtime
 async function afterSignedIn(){const {data:m}=await cloud.from('family_members').select('family_id').eq('user_id',authSession.user.id).maybeSingle();if(m?.family_id){familyId=m.family_id;localStorage.setItem(FAMILY_KEY,familyId);await subscribeRealtime();await refreshRemote();render();}else{showFamilySetup();render();}}
 
 const categoryOrder=['Frukt og grønt','Kjøtt og fisk','Meieri og egg','Brød og bakervarer','Tørrvarer','Hermetikk og sauser','Frysevarer','Drikke','Husholdning','Annet'];
-function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category:categorizeIngredient(x.name)})).sort((a,b)=>{const ca=categoryOrder.indexOf(a.category),cb=categoryOrder.indexOf(b.category);return (ca-cb)||String(a.name).localeCompare(String(b.name),'nb',{sensitivity:'base'})});}
+function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category:x.category||categorizeIngredient(x.name)})).sort((a,b)=>{const ca=categoryOrder.indexOf(a.category),cb=categoryOrder.indexOf(b.category);return (ca-cb)||String(a.name).localeCompare(String(b.name),'nb',{sensitivity:'base'})});}
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}

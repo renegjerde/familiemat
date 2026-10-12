@@ -24,3 +24,6 @@ Appen bruker Project URL og Publishable key. Databasepassord og secret/service-r
 - `manifest.json` – PWA
 - `service-worker.js` – cache
 - `fixed-shopping.sql` – Supabase-migrering for faste handlevarer
+
+
+Versjon 40: Manuelt valgt kategori for faste handlevarer beholdes når handlelisten sorteres og oppdateres.

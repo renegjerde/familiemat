@@ -1,6 +1,11 @@
-# Familiemat v43
+# Familiemat v44
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
+
+## Nytt i v44
+- Basisvarers manuelt valgte kategori brukes også i handlelisten og lagres i ukedataene i skyen.
+- Kategorivalg bevares når basisvarer synkroniseres, også når databasen ikke har et eget kategorifelt.
+- Knappen for å endre basisvarekategori heter nå «Rediger», i tråd med resten av appen.
 
 ## Nytt i v43
 - Avkryssede varer samles nederst i handlelisten under en egen overskrift: **Kjøpt**.
@@ -8,7 +13,7 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 - Avkryssing kan angres: varen flyttes tilbake til den vanlige listen.
 - Fjerner den tidligere knappen «Fjern kjøpte varer», som ikke oppførte seg pålitelig.
 - Kjøpte varer bevares når handlelisten bygges på nytt. Når en ny uke startes, nullstilles kjøpsmarkeringene slik at aktuelle varer kan komme tilbake.
-- Oppdaterer app- og service-worker-cache til v42.
+- Oppdaterer app- og service-worker-cache til v44.
 
 ## Funksjoner
 - Ukeplan med middager og tidligere uker.

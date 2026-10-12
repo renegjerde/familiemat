@@ -126,3 +126,15 @@
  .day-actions .btn{min-height:34px}
  .section-title{margin-top:18px}
 }
+
+
+/* v47: Fast handel uses the same compact, vertically aligned row layout as Basisvarer. */
+.fixed-item{box-shadow:none;min-height:50px;padding:9px 11px;margin:8px 0;border-radius:14px;display:block}
+.fixed-item>div{align-items:center!important;gap:10px!important;width:100%}
+.fixed-item>div>div:nth-child(2){flex:1 1 auto;min-width:0}
+.fixed-item strong{display:block;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
+.fixed-item .small{font-size:13px;line-height:1.3;margin-top:2px}
+.fixed-item .fixed-toggle{width:23px;height:23px;flex:0 0 23px}
+.fixed-item-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.fixed-item .fixed-item-actions .smallbtn{min-height:34px!important;padding:6px 9px!important;font-size:12px!important;line-height:1.2;border-radius:9px}
+@media(max-width:480px){.fixed-item{padding:9px 10px;margin:8px 0}.fixed-item>div{gap:9px!important}.fixed-item .fixed-item-actions{gap:5px}.fixed-item .fixed-item-actions .smallbtn{min-height:34px!important;padding:6px 8px!important;font-size:11px!important}}

@@ -182,3 +182,16 @@
   .fixed-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] { width: 65px !important; min-width: 65px !important; }
   .fixed-item .fixed-item-actions .smallbtn[aria-label^="Slett"] { width: 26px !important; min-width: 26px !important; }
 }
+
+/* v52: Fast handel and Basisvarer use the same row structure and control sizing. */
+.pantry-item { display:block !important; }
+.pantry-item > .pantry-item-main { display:flex !important; align-items:center !important; gap:10px !important; width:100%; min-width:0; }
+.pantry-item .pantry-item-name { flex:1 1 auto; min-width:0; }
+.pantry-item .pantry-item-name strong { display:block; font-size:15px; line-height:1.25; font-weight:400; overflow-wrap:anywhere; }
+.pantry-item .pantry-item-name .small { font-size:13px; line-height:1.3; margin-top:2px; }
+.pantry-item .fixed-toggle { width:23px; height:23px; flex:0 0 23px; accent-color:var(--green); }
+.pantry-item .fixed-item-actions { display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+.pantry-item .fixed-item-actions .smallbtn { box-sizing:border-box !important; height:38px !important; min-height:38px !important; font-size:13px !important; font-weight:700 !important; line-height:1.2 !important; border-radius:10px !important; }
+.pantry-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] { width:65px !important; min-width:65px !important; padding:8px 8px !important; }
+.pantry-item .fixed-item-actions .smallbtn[aria-label^="Slett"] { width:26px !important; min-width:26px !important; padding:0 !important; display:inline-flex; align-items:center; justify-content:center; }
+@media(max-width:480px) { .pantry-item > .pantry-item-main { gap:10px !important; } .pantry-item .fixed-item-actions { gap:8px !important; } .pantry-item .fixed-item-actions .smallbtn { height:38px !important; min-height:38px !important; font-size:13px !important; } }

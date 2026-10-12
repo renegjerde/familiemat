@@ -1,29 +1,30 @@
-# 🍲 Familiemat v28
+# Familiemat v42
 
-Familiesynkronisering med Supabase, autosave og tryggere deling av alle familie-data.
+Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
 
-## Nytt i v28
-- Faste handlevarer har egen Supabase-tabell og synkroniseres automatisk mellom enheter.
-- Faste handlevarer får lokal autosave, skybackup, realtime-oppdatering og eksplisitt sletting.
-- Ukeplan og handleliste synkroniseres automatisk som før, med lokal tidsstempelmarkør slik at nyere lokale endringer ikke overskrives av eldre skydata.
-- Oppskrifter og basisvarer beholder samme autosave/synkroniseringsmodell.
-- Nye faste handlevarer får ID lokalt før de sendes til skyen.
-- Handlelisten bygges fortsatt automatisk fra middager, basisvarer som går tomme og aktive faste handlevarer.
+## Nytt i v42
+- Avkryssede varer samles nederst i handlelisten under en egen overskrift: **Kjøpt**.
+- Varer som ikke er kjøpt, vises øverst sortert etter butikkategori og alfabetisk.
+- Avkryssing kan angres: varen flyttes tilbake til den vanlige listen.
+- Fjerner den tidligere knappen «Fjern kjøpte varer», som ikke oppførte seg pålitelig.
+- Kjøpte varer bevares når handlelisten bygges på nytt. Når en ny uke startes, nullstilles kjøpsmarkeringene slik at aktuelle varer kan komme tilbake.
+- Oppdaterer app- og service-worker-cache til v42.
 
-## Supabase
-Hvis appen viser at `fixed_shopping` mangler, kjør `fixed-shopping.sql` i Supabase SQL Editor. SQL-filen er gjort idempotent og ber PostgREST laste inn skjemaet på nytt. Appen fortsetter å fungere selv om tabellen ikke er opprettet ennå, men Fast handel kan ikke synkroniseres før tabellen finnes.
-
-Kjør `fixed-shopping.sql` én gang i Supabase SQL Editor. Den oppretter tabellen `fixed_shopping`, RLS-policyer og aktiverer Realtime.
-
-Appen bruker Project URL og Publishable key. Databasepassord og secret/service-role keys skal ikke legges i klienten.
+## Funksjoner
+- Ukeplan med middager og tidligere uker.
+- Oppskrifter med ingredienser og porsjoner.
+- Handleliste bygget fra ukeplan, basisvarer som går tomme og aktive varer i Fast handel.
+- Basisvarer med mulighet for manuell kategorisering.
+- Fast handel med mengde, enhet, kategori og aktiv/inaktiv-status.
+- Lokal lagring og valgfri familiesynkronisering via Supabase.
 
 ## Filer
-- `index.html` – app-shell og versjonert cache
-- `app.js` – app, lokal lagring, synkronisering og UI
-- `styles.css` – mobil-first design
-- `manifest.json` – PWA
-- `service-worker.js` – cache
-- `fixed-shopping.sql` – Supabase-migrering for faste handlevarer
+- `index.html` – app-shell og versjonerte CSS/JS-filer.
+- `app.js` – app, lokal lagring, handleliste, synkronisering og brukergrensesnitt.
+- `styles.css` – utforming og mobilvisning.
+- `manifest.json` – PWA-oppsett.
+- `service-worker.js` – cache for appen.
+- `fixed-shopping.sql` – Supabase-tabell og policyer for Fast handel.
 
-
-Versjon 40: Manuelt valgt kategori for faste handlevarer beholdes når handlelisten sorteres og oppdateres.
+## Supabase
+Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.sql` i Supabase SQL Editor. Ikke legg databasepassord eller secret/service-role keys i klientkoden.

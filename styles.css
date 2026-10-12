@@ -49,3 +49,7 @@
 /* v37: keep the clear-bought action above the fixed mobile navigation */
 .app{padding-bottom:calc(130px + env(safe-area-inset-bottom))}
 .clear-bought-btn{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom));z-index:9;margin-bottom:16px;box-shadow:0 3px 12px #3d28121a}
+
+/* Kjøpte varer samles nederst i handlelisten */
+.bought-category { margin-top: 18px; padding-top: 8px; border-top: 2px solid var(--line, #e5ded5); }
+.bought-category h3 { color: #467553; }

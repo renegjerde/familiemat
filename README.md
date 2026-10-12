@@ -1,4 +1,4 @@
-# Familiemat v54
+# Familiemat v52
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
 
@@ -59,11 +59,10 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 - Oppdatert cacheversjon for å sikre at nettleseren laster de nye filene.
 
 
-## Nytt i v54
+## Nytt i v52
 - Når «Ny uke» brukes, arkiveres den gamle middagsplanen som forrige kalenderuke, ikke som uken som akkurat har startet.
 - Arkiveringsdatoen og ukeetiketten bruker ISO-uken fra sju dager før opprettelsen, også rundt årsskiftet.
-- Basisvare-avkryssing slår opp varen via stabil nøkkel (ID/navn), ikke en sorteringsavhengig arrayindeks.
-- Oppdaterer appversjon, filreferanser og service-worker-cache til v54.
+- Oppdaterer appversjon, filreferanser og service-worker-cache til v52.
 
 ## Nytt i v50
 - Fast handel bruker nå samme kompakte listeavstand og lettere varenavn som Basisvarer.

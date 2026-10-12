@@ -25,6 +25,7 @@ function load(){
    x.recipes=Array.isArray(x.recipes)?x.recipes:[];
    x.pantry=Array.isArray(x.pantry)?x.pantry:starterPantry;
    x.shopping=Array.isArray(x.shopping)?x.shopping:[];
+   x.shoppingHidden=Array.isArray(x.shoppingHidden)?x.shoppingHidden:[];
    x.weekHistory=Array.isArray(x.weekHistory)?x.weekHistory:[];
    x.fixedShopping=Array.isArray(x.fixedShopping)?x.fixedShopping:[];
    x.pendingDeletes=x.pendingDeletes||{recipes:[],pantry:[],fixedShopping:[]};
@@ -34,7 +35,7 @@ function load(){
    return x;
   }
  }catch(e){}
- return{week:Array(7).fill(null),recipes:[],pantry:starterPantry,shopping:[],weekHistory:[],fixedShopping:[],fixedShoppingDeleted:[],fixedShoppingUpdatedAt:0,pendingDeletes:{recipes:[],pantry:[],fixedShopping:[]}}
+ return{week:Array(7).fill(null),recipes:[],pantry:starterPantry,shopping:[],shoppingHidden:[],weekHistory:[],fixedShopping:[],fixedShoppingDeleted:[],fixedShoppingUpdatedAt:0,pendingDeletes:{recipes:[],pantry:[],fixedShopping:[]}}
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function saveAndSync(){save();queueCloudSync()}
@@ -115,6 +116,7 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
    else {
      data.week=Array.isArray(plan.meals)?plan.meals:data.week;
      data.shopping=Array.isArray(plan.shopping)?plan.shopping:data.shopping;
+     data.shoppingHidden=Array.isArray(plan.shoppingHidden)?plan.shoppingHidden:(data.shoppingHidden||[]);
      const remoteDeleted=new Set(Array.isArray(plan.fixedShoppingDeleted)?plan.fixedShoppingDeleted:[]);
      const localMap=new Map((data.fixedShopping||[]).map(x=>[x.id,x]));
      for(const f of (Array.isArray(plan.fixedShopping)?plan.fixedShopping:[])){if(f.id&&!remoteDeleted.has(f.id))localMap.set(f.id,{id:f.id,name:f.name,qty:f.qty??1,unit:f.unit||'stk',category:f.category||categorizeIngredient(f.name),active:f.active!==false});}
@@ -126,7 +128,7 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
  syncShopping();save();cloudReady=true;
  }catch(e){console.error(e);alert('Kunne ikke hente Familiemat-data fra skyen: '+(e.message||e));}finally{cloudBusy=false;}}
 
-async function pushWeek(){if(!familyId||!authSession)return;data.fixedShopping=(data.fixedShopping||[]).map(x=>x.id?x:{...x,id:newId()});const res=await cloud.from('week_plans').upsert({family_id:familyId,week_key:currentWeekKey(),days:{meals:data.week,shopping:data.shopping,fixedShopping:data.fixedShopping,fixedShoppingDeleted:data.fixedShoppingDeleted||[]}},{onConflict:'family_id,week_key'});if(res.error)console.error(res.error);}
+async function pushWeek(){if(!familyId||!authSession)return;data.fixedShopping=(data.fixedShopping||[]).map(x=>x.id?x:{...x,id:newId()});const res=await cloud.from('week_plans').upsert({family_id:familyId,week_key:currentWeekKey(),days:{meals:data.week,shopping:data.shopping,shoppingHidden:data.shoppingHidden||[],fixedShopping:data.fixedShopping,fixedShoppingDeleted:data.fixedShoppingDeleted||[]}},{onConflict:'family_id,week_key'});if(res.error)console.error(res.error);}
 let syncTimer=null;function queueCloudSync(){if(!familyId||!authSession)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncLocalChanges(),250);}
 async function syncLocalChanges(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
  const pending=data.pendingDeletes||{recipes:[],pantry:[]};
@@ -237,6 +239,7 @@ async function newWeek(){
  if(confirm('Starte en ny uke nå? Den aktive ukeplanen arkiveres, og middagsplanen tømmes. Dette skjer bare når du bekrefter. Oppskrifter og basisvarer beholdes.')){
    await archiveCurrentWeek();
    data.week=Array(7).fill(null);
+   data.shoppingHidden=[];
    syncShopping();
    saveAndSync();
    render();
@@ -346,11 +349,11 @@ function setDay(d,recipeIndex){const r=data.recipes[recipeIndex];if(!r)return;da
 function removeFromWeek(day){if(day<0||day>=data.week.length||!data.week[day])return;data.week[day]=null;syncShopping();saveAndSync();render()}
 function addRecipeToWeek(recipeIndex){const r=data.recipes[recipeIndex];if(!r)return;modal(`<h2>Legg «${esc(r.name)}» til i uka</h2><p class="small">Velg hvilken dag middagen skal være.</p><div class="list">${days.map((d,i)=>`<button type="button" class="row" style="text-align:left" onclick="setDay(${i},${recipeIndex})"><span>📅</span><strong>${d}</strong>${data.week[i]===r.name?'<span class="qty">Valgt</span>':''}</button>`).join('')}</div>`)}
 function newRecipeForDay(day){closeModal();recipeForm(-1,day)}
-function syncShopping(){const old=new Map((data.shopping||[]).map(x=>[x.name.trim().toLowerCase(),x]));const map=new Map();for(const name of data.week.filter(Boolean)){const r=data.recipes.find(x=>x.name===name);if(!r)continue;for(const [ing,q,u] of r.ingredients){const k=ing.trim().toLowerCase();if(!map.has(k))map.set(k,{name:ing,qty:0,unit:u,category:categorizeIngredient(ing),done:old.get(k)?.done||false});const x=map.get(k);x.category=categorizeIngredient(x.name);if(x.unit===u&&typeof q==='number')x.qty+=q;else if(x.qty===0){x.qty=q;x.unit=u}}}for(const f of (data.fixedShopping||[]).filter(x=>x.active!==false)){const k=String(f.name||'').trim().toLowerCase();if(!k)continue;const qty=Number(f.qty)||1;const unit=f.unit||'stk';if(!map.has(k))map.set(k,{name:f.name,qty:0,unit,category:f.category||categorizeIngredient(f.name),done:old.get(k)?.done||false});const x=map.get(k);x.category=f.category||x.category||categorizeIngredient(x.name);if(x.unit===unit)x.qty+=qty;else if(x.qty===0){x.qty=qty;x.unit=unit}}for(const p of data.pantry.filter(x=>x.low)){const k=p.name.trim().toLowerCase();if(!map.has(k))map.set(k,{name:p.name,qty:1,unit:'stk',category:categorizeIngredient(p.name),done:old.get(k)?.done||false})}data.shopping=[...map.values()].sort((a,b)=>{const ca=categoryOrder.indexOf(a.category),cb=categoryOrder.indexOf(b.category);return (ca-cb)||String(a.name).localeCompare(String(b.name),'nb',{sensitivity:'base'})});save()}
+function syncShopping(){const old=new Map((data.shopping||[]).map(x=>[x.name.trim().toLowerCase(),x]));const map=new Map();for(const name of data.week.filter(Boolean)){const r=data.recipes.find(x=>x.name===name);if(!r)continue;for(const [ing,q,u] of r.ingredients){const k=ing.trim().toLowerCase();if(!map.has(k))map.set(k,{name:ing,qty:0,unit:u,category:categorizeIngredient(ing),done:old.get(k)?.done||false});const x=map.get(k);x.category=categorizeIngredient(x.name);if(x.unit===u&&typeof q==='number')x.qty+=q;else if(x.qty===0){x.qty=q;x.unit=u}}}for(const f of (data.fixedShopping||[]).filter(x=>x.active!==false)){const k=String(f.name||'').trim().toLowerCase();if(!k)continue;const qty=Number(f.qty)||1;const unit=f.unit||'stk';if(!map.has(k))map.set(k,{name:f.name,qty:0,unit,category:f.category||categorizeIngredient(f.name),done:old.get(k)?.done||false});const x=map.get(k);x.category=f.category||x.category||categorizeIngredient(x.name);if(x.unit===unit)x.qty+=qty;else if(x.qty===0){x.qty=qty;x.unit=unit}}for(const p of data.pantry.filter(x=>x.low)){const k=p.name.trim().toLowerCase();if(!map.has(k))map.set(k,{name:p.name,qty:1,unit:'stk',category:categorizeIngredient(p.name),done:old.get(k)?.done||false})}const hidden=new Set((data.shoppingHidden||[]).map(k=>String(k).trim().toLowerCase()));data.shopping=[...map.values()].filter(x=>!hidden.has(String(x.name||'').trim().toLowerCase())).sort((a,b)=>{const ca=categoryOrder.indexOf(a.category),cb=categoryOrder.indexOf(b.category);return (ca-cb)||String(a.name).localeCompare(String(b.name),'nb',{sensitivity:'base'})});save()}
 function buildShopping(){syncShopping();page='shopping';render()}
 function formatQty(q){return Number.isInteger(q)?q:String(Math.round(q*100)/100)}
 function toggleShopByName(name){const key=String(name||'').trim().toLowerCase();const item=data.shopping.find(x=>String(x.name||'').trim().toLowerCase()===key);if(!item)return;item.done=!item.done;const pantry=data.pantry.find(p=>p.name.trim().toLowerCase()===key);if(pantry&&item.done)pantry.low=false;saveAndSync();render()}
-function clearBought(){data.shopping=data.shopping.filter(x=>!x.done);saveAndSync();render()}
+function clearBought(){data.shoppingHidden=data.shoppingHidden||[];const hidden=new Set(data.shoppingHidden.map(k=>String(k).trim().toLowerCase()));for(const x of data.shopping||[]){if(x.done)hidden.add(String(x.name||'').trim().toLowerCase())}data.shoppingHidden=[...hidden].filter(Boolean);data.shopping=data.shopping.filter(x=>!x.done);saveAndSync();render()}
 function togglePantry(i){data.pantry[i].low=!data.pantry[i].low;syncShopping();saveAndSync();render()}
 function addPantry(){modal(`<h2>Ny basisvare</h2><div class="field"><label>Navn</label><input id="pname" placeholder="F.eks. melk"></div><button class="btn full" onclick="savePantry()">Legg til</button>`)}
 function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;data.pantry.push({name:n,low:false});saveAndSync();closeModal();render()}

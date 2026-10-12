@@ -152,3 +152,31 @@
 .fixed-item-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
 .fixed-item .fixed-item-actions .smallbtn{min-height:38px!important;padding:8px 11px!important;font-size:13px!important;line-height:1.2;border-radius:10px}
 @media(max-width:480px){.fixed-item{padding:9px 11px;margin:0}.fixed-item>div{gap:10px!important}.fixed-item .fixed-item-actions{gap:5px}.fixed-item .fixed-item-actions .smallbtn{min-height:38px!important;padding:8px 10px!important;font-size:12px!important}}
+
+
+/* v49: make Fast handel action buttons match Basisvarer exactly. */
+.fixed-item .fixed-item-actions .smallbtn {
+  box-sizing: border-box !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 8px 11px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  border-radius: 10px !important;
+}
+.fixed-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] {
+  width: 70px !important;
+  min-width: 70px !important;
+}
+.fixed-item .fixed-item-actions .smallbtn[aria-label^="Slett"] {
+  width: 27px !important;
+  min-width: 27px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+@media(max-width:480px) {
+  .fixed-item .fixed-item-actions .smallbtn { height: 38px !important; min-height: 38px !important; padding: 8px 10px !important; font-size: 12px !important; }
+  .fixed-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] { width: 70px !important; min-width: 70px !important; }
+  .fixed-item .fixed-item-actions .smallbtn[aria-label^="Slett"] { width: 27px !important; min-width: 27px !important; padding-left: 0 !important; padding-right: 0 !important; }
+}

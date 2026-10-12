@@ -44,3 +44,8 @@
 .fixed-item-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .fixed-item-actions .smallbtn{padding:8px 10px;font-size:12px}
 @media(max-width:390px){.fixed-item-actions{gap:4px}.fixed-item-actions .smallbtn{padding:7px 8px;font-size:11px}}
+
+
+/* v37: keep the clear-bought action above the fixed mobile navigation */
+.app{padding-bottom:calc(130px + env(safe-area-inset-bottom))}
+.clear-bought-btn{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom));z-index:9;margin-bottom:16px;box-shadow:0 3px 12px #3d28121a}

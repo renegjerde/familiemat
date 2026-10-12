@@ -1,4 +1,4 @@
-# Familiemat v55
+# Familiemat v56
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
 
@@ -71,6 +71,8 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 - Oppdatert cacheversjon og filreferanser til v50.
 
 
-## Nytt i v55
+## Nytt i v56
 - Basisvarer avkrysses med stabil identifikasjon (vare-ID, eller navn når ID mangler), ikke med en sorteringsavhengig listeindeks.
 - Bygger direkte på den fungerende filstrukturen fra v52; øvrig layout og funksjonalitet er beholdt.
+
+- Rettet en oppstartsfeil i v55: appen forsøkte å eksportere den gamle funksjonen `togglePantry`, som ikke lenger fantes. v56 eksporterer `togglePantryByKey` korrekt.

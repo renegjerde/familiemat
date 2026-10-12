@@ -1,8 +1,8 @@
-# Familiemat v42
+# Familiemat v43
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
 
-## Nytt i v42
+## Nytt i v43
 - Avkryssede varer samles nederst i handlelisten under en egen overskrift: **Kjøpt**.
 - Varer som ikke er kjøpt, vises øverst sortert etter butikkategori og alfabetisk.
 - Avkryssing kan angres: varen flyttes tilbake til den vanlige listen.
@@ -28,3 +28,8 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 
 ## Supabase
 Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.sql` i Supabase SQL Editor. Ikke legg databasepassord eller secret/service-role keys i klientkoden.
+
+
+## Feilretting i v43
+- Fjernet utdaterte funksjonsreferanser som stoppet JavaScript under oppstart.
+- Oppdatert cacheversjon for å sikre at nettleseren laster de nye filene.

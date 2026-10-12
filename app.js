@@ -175,7 +175,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v49</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v51</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){
@@ -226,7 +226,9 @@ async function restoreArchivedWeek(i){
 async function archiveCurrentWeek(){
  const meals=[...data.week];
  if(!meals.some(Boolean))return;
- const info=isoWeekInfo();
+ const archiveDate=new Date();
+ archiveDate.setDate(archiveDate.getDate()-7);
+ const info=isoWeekInfo(archiveDate);
  const key=info.key;
  const archivedAt=new Date().toISOString();
  if(!Array.isArray(data.weekHistory))data.weekHistory=[];

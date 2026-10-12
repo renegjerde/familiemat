@@ -169,6 +169,8 @@ async function subscribeRealtime(){if(!familyId||!authSession)return;if(realtime
 async function afterSignedIn(){const {data:m}=await cloud.from('family_members').select('family_id').eq('user_id',authSession.user.id).maybeSingle();if(m?.family_id){familyId=m.family_id;localStorage.setItem(FAMILY_KEY,familyId);await subscribeRealtime();await refreshRemote();render();}else{showFamilySetup();render();}}
 
 const categoryOrder=['Frukt og grønt','Kjøtt og fisk','Meieri og egg','Brød og bakervarer','Tørrvarer','Hermetikk og sauser','Frysevarer','Drikke','Husholdning','Annet'];
+// Dropdowns are alphabetic for easier scanning; the shopping list keeps its practical store order.
+const categoryDropdownOrder=[...categoryOrder].sort((a,b)=>a.localeCompare(b,'nb',{sensitivity:'base'}));
 function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category:x.category||categorizeIngredient(x.name)})).sort((a,b)=>{const ca=categoryOrder.indexOf(a.category),cb=categoryOrder.indexOf(b.category);return (ca-cb)||String(a.name).localeCompare(String(b.name),'nb',{sensitivity:'base'})});}
 sortShopping();
 syncShopping();
@@ -324,7 +326,7 @@ function addFixedShopping(){showFixedShoppingEditor(null)}
 function editFixedShopping(i){const item=data.fixedShopping?.[i];if(item)showFixedShoppingEditor(item.id)}
 function showFixedShoppingEditor(id){
  const item=id?(data.fixedShopping||[]).find(x=>x.id===id):null;
- const cats=categoryOrder.map(c=>`<option value="${esc(c)}" ${(item?.category||'Annet')===c?'selected':''}>${esc(c)}</option>`).join('');
+ const cats=categoryDropdownOrder.map(c=>`<option value="${esc(c)}" ${(item?.category||'Annet')===c?'selected':''}>${esc(c)}</option>`).join('');
  modal(`<h2>${item?'Rediger fast handlevare':'Ny fast handlevare'}</h2><input type="hidden" id="feditid" value="${esc(item?.id||'')}"><div class="field"><label>Navn</label><input id="fname" placeholder="F.eks. miniost" value="${esc(item?.name||'')}"></div><div class="field"><label>Mengde</label><input id="fqty" type="number" min="0.01" step="0.01" value="${esc(item?.qty??1)}"></div><div class="field"><label>Enhet</label><input id="funit" value="${esc(item?.unit||'stk')}" placeholder="stk, pk, kg…"></div><div class="field"><label>Kategori</label><select id="fcat">${cats}</select></div><button class="btn full" onclick="saveFixedShopping()">${item?'Lagre endringer':'Legg til'}</button>`)
 }
 function saveFixedShopping(){
@@ -360,7 +362,7 @@ function toggleShop(i){const item=data.shopping[i];if(!item)return;item.done=!it
 function togglePantry(i){data.pantry[i].low=!data.pantry[i].low;syncShopping();saveAndSync();render()}
 function addPantry(){modal(`<h2>Ny basisvare</h2><div class="field"><label>Navn</label><input id="pname" placeholder="F.eks. melk"></div><button class="btn full" onclick="savePantry()">Legg til</button>`)}
 function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;data.pantry.push({name:n,low:false,category:categorizeIngredient(n)});saveAndSync();closeModal();render()}
-function editPantryCategory(i){const item=data.pantry[i];if(!item)return;const selected=item.category||categorizeIngredient(item.name);const cats=categoryOrder.map(c=>`<option value="${esc(c)}" ${selected===c?'selected':''}>${esc(c)}</option>`).join('');modal(`<h2>Rediger kategori</h2><p class="small">${esc(item.name)}</p><div class="field"><label>Kategori</label><select id="pantrycat">${cats}</select></div><button class="btn full" onclick="savePantryCategory(${i})">Lagre kategori</button>`)}
+function editPantryCategory(i){const item=data.pantry[i];if(!item)return;const selected=item.category||categorizeIngredient(item.name);const cats=categoryDropdownOrder.map(c=>`<option value="${esc(c)}" ${selected===c?'selected':''}>${esc(c)}</option>`).join('');modal(`<h2>Rediger kategori</h2><p class="small">${esc(item.name)}</p><div class="field"><label>Kategori</label><select id="pantrycat">${cats}</select></div><button class="btn full" onclick="savePantryCategory(${i})">Lagre kategori</button>`)}
 function savePantryCategory(i){const item=data.pantry[i];const category=document.getElementById('pantrycat')?.value;if(!item||!category)return;item.category=category;syncShopping();saveAndSync();closeModal();render()}
 async function deletePantry(i){const item=data.pantry[i];if(!item)return;if(confirm(`Vil du slette ${item.name} fra basisvarene?`)){if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[]};data.pendingDeletes.pantry.push(item.id);}data.pantry.splice(i,1);syncShopping();saveAndSync();render()}}
 function recipeForm(i=-1,day=null,prefill=null){

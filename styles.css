@@ -53,3 +53,39 @@
 /* Kjøpte varer samles nederst i handlelisten */
 .bought-category { margin-top: 18px; padding-top: 8px; border-top: 2px solid var(--line, #e5ded5); }
 .bought-category h3 { color: #467553; }
+
+/* v45: shared visual rhythm across all sections */
+:root{--control-radius:12px;--control-height:44px}
+.section-title{font-size:22px;line-height:1.2;margin:22px 3px 10px}
+.content>p.small{font-size:14px;line-height:1.45;margin:0 3px 12px}
+.card{border-radius:18px;padding:16px;margin:10px 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:var(--control-height);padding:10px 14px;border-radius:var(--control-radius);font-size:14px;line-height:1.2;font-weight:700;text-align:center;white-space:normal;transition:filter .15s ease,transform .15s ease}
+.btn:active{transform:translateY(1px)}
+.btn.full{display:flex;min-height:49px;padding:13px 16px;margin:10px 0 12px;width:100%}
+.btn.secondary{background:var(--accent2);color:#8a482b}
+.btn.ghost{background:transparent;color:var(--accent);min-height:38px}
+.btn.danger,.danger{background:#f9e6e3;color:#b33}
+.smallbtn{min-height:36px;padding:7px 10px;border-radius:10px;font-size:12px}
+.account-btn{min-height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:11px}
+.row{min-height:54px;border-radius:15px;padding:11px 12px;gap:11px}
+.fixed-item{padding:13px 12px;border-radius:17px}
+.fixed-item-actions{align-self:center}
+.fixed-item-actions .smallbtn{min-height:38px;padding:8px 11px;font-size:12px}
+.recipe-actions{gap:8px;margin-top:13px}
+.recipe-actions .btn{min-height:44px}
+.recipe-actions .add-action{min-height:46px}
+.recipe-more summary{border-radius:11px}
+.field{margin:13px 0}
+.field input,.field textarea,.field select{min-height:45px;border-radius:12px;padding:11px 12px;border-color:var(--line);color:var(--ink)}
+.field textarea{line-height:1.45}
+.sheet{padding:20px 16px calc(30px + env(safe-area-inset-bottom))}
+.sheet h2{font-size:22px;line-height:1.25;margin:4px 0 14px}
+.list{gap:9px}
+.shop-category{margin:20px 0}
+.shop-category h3{font-size:15px;line-height:1.3;margin:0 0 9px}
+@media(max-width:480px){
+ .section-title{margin-top:20px}
+ .content>p.small{margin-bottom:11px}
+ .fixed-item-actions .smallbtn{min-height:36px;padding:7px 9px;font-size:12px}
+ .recipe-actions .edit-action{padding:9px 12px}
+}

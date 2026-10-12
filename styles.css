@@ -89,3 +89,40 @@
  .fixed-item-actions .smallbtn{min-height:36px;padding:7px 9px;font-size:12px}
  .recipe-actions .edit-action{padding:9px 12px}
 }
+
+
+/* v46: compact, consistent secondary actions and denser mobile lists */
+:root{--control-height:42px;--control-radius:11px}
+/* Keep the primary action prominent; make secondary actions calmer and more compact. */
+.btn.secondary,.btn.history-toggle,.btn.ghost{font-size:13px;min-height:38px;padding:8px 11px;border-radius:10px}
+.btn.full{font-size:15px;min-height:48px;padding:12px 15px;margin:9px 0 10px}
+.card{padding:14px;margin:8px 0;border-radius:17px}
+.list{gap:7px}
+.row{min-height:50px;padding:9px 11px;border-radius:14px;gap:10px}
+.fixed-item{padding:10px 11px;border-radius:15px}
+.fixed-item-actions{gap:5px}
+.fixed-item-actions .smallbtn{min-height:34px;padding:6px 9px;font-size:12px;border-radius:9px}
+.recipe-actions{gap:7px;margin-top:11px}
+.recipe-actions .edit-action{min-height:38px;padding:8px 11px;font-size:13px}
+.recipe-actions .add-action{min-height:44px}
+.recipe-more summary{width:36px;height:36px;border-radius:10px;font-size:19px}
+.section-title{font-size:21px;line-height:1.2;margin:19px 3px 9px}
+.shop-category{margin:17px 0}
+.shop-category h3{margin-bottom:7px}
+.field{margin:11px 0}
+.field label{margin-bottom:5px;font-size:14px}
+.sheet{padding:18px 15px calc(26px + env(safe-area-inset-bottom))}
+.sheet h2{font-size:21px;margin-bottom:12px}
+.history-entry{padding:9px 0}
+.history-entry .btn{min-height:34px;padding:6px 9px;font-size:12px}
+@media(max-width:480px){
+ .content{padding:0 13px}
+ .card{padding:13px;margin:8px 0}
+ .fixed-item{padding:10px}
+ .fixed-item-actions .smallbtn{min-height:34px;padding:6px 8px;font-size:11px}
+ .recipe-actions .edit-action{padding:8px 10px}
+ .recipe-actions .add-action{min-height:43px}
+ .day{padding:11px 12px;gap:8px}
+ .day-actions .btn{min-height:34px}
+ .section-title{margin-top:18px}
+}

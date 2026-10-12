@@ -1,6 +1,12 @@
-# Familiemat v45
+# Familiemat v46
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
+
+## Nytt i v46
+- Mer kompakte lister og kort, med litt mindre vertikal avstand på mobil.
+- Sekundærknapper som «Rediger» og «Bytt» er roligere og mindre, mens hovedhandlingene fortsatt er tydelige.
+- Skjemaer, kategorioverskrifter og kort følger en jevnere spacing-skala.
+- Oppdatert cacheversjon til v46.
 
 ## Nytt i v45
 - Jevnere utforming av knapper, handlingsknapper, kort, lister og skjemafelt på tvers av menyene.

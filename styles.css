@@ -154,29 +154,31 @@
 @media(max-width:480px){.fixed-item{padding:9px 11px;margin:0}.fixed-item>div{gap:10px!important}.fixed-item .fixed-item-actions{gap:5px}.fixed-item .fixed-item-actions .smallbtn{min-height:38px!important;padding:8px 10px!important;font-size:12px!important}}
 
 
-/* v49: make Fast handel action buttons match Basisvarer exactly. */
+/* v50: align Fast handel controls with Basisvarer. */
+.fixed-item { padding: 10px 11px !important; }
+.fixed-item > div { align-items: center !important; gap: 10px !important; }
+.fixed-item .fixed-item-actions { display:flex; align-items:center; gap:8px; flex:0 0 auto; }
 .fixed-item .fixed-item-actions .smallbtn {
   box-sizing: border-box !important;
   height: 38px !important;
   min-height: 38px !important;
-  padding: 8px 11px !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   line-height: 1.2 !important;
   border-radius: 10px !important;
 }
 .fixed-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] {
-  width: 70px !important;
-  min-width: 70px !important;
+  width: 65px !important; min-width: 65px !important;
+  padding: 8px 8px !important;
 }
 .fixed-item .fixed-item-actions .smallbtn[aria-label^="Slett"] {
-  width: 27px !important;
-  min-width: 27px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  width: 26px !important; min-width: 26px !important;
+  padding: 0 !important; display:inline-flex; align-items:center; justify-content:center;
 }
 @media(max-width:480px) {
-  .fixed-item .fixed-item-actions .smallbtn { height: 38px !important; min-height: 38px !important; padding: 8px 10px !important; font-size: 12px !important; }
-  .fixed-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] { width: 70px !important; min-width: 70px !important; }
-  .fixed-item .fixed-item-actions .smallbtn[aria-label^="Slett"] { width: 27px !important; min-width: 27px !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .fixed-item { padding: 10px 11px !important; }
+  .fixed-item .fixed-item-actions { gap: 8px !important; }
+  .fixed-item .fixed-item-actions .smallbtn { height: 38px !important; min-height: 38px !important; font-size: 13px !important; }
+  .fixed-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] { width: 65px !important; min-width: 65px !important; }
+  .fixed-item .fixed-item-actions .smallbtn[aria-label^="Slett"] { width: 26px !important; min-width: 26px !important; }
 }

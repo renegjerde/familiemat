@@ -15,7 +15,9 @@ const recipeCategories=['Fisk','Kylling','Kjøtt','Vegetar','Pasta','Tex-Mex','S
 const exampleRecipeNames=new Set([
  'Spaghetti bolognese','Taco','Laks med poteter','Kyllinggryte','Hjemmelaget pizza','Fiskekaker med poteter'
 ]);
-const starterPantry=['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir'].map(name=>({name,low:false}));
+const starterPantry=[];
+// Tidligere automatisk opprettede startvarer fjernes én gang ved innlasting.
+const unwantedStarterPantryNames=new Set(['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir']);
 let data=load(); let page='week'; let showWeekHistory=false;
 function load(){
  try{
@@ -29,7 +31,11 @@ function load(){
    x.weekHistory=Array.isArray(x.weekHistory)?x.weekHistory:[];
    x.fixedShopping=Array.isArray(x.fixedShopping)?x.fixedShopping:[];
    x.pendingDeletes=x.pendingDeletes||{recipes:[],pantry:[],fixedShopping:[]};
+   x.pendingDeletes.recipes=Array.isArray(x.pendingDeletes.recipes)?x.pendingDeletes.recipes:[];
+   x.pendingDeletes.pantry=Array.isArray(x.pendingDeletes.pantry)?x.pendingDeletes.pantry:[];
    x.pendingDeletes.fixedShopping=Array.isArray(x.pendingDeletes.fixedShopping)?x.pendingDeletes.fixedShopping:[];
+   // Fjern gamle standardvarer som appen la inn automatisk, men behold brukerens egne varer med annen skrivemåte.
+   x.pantry=x.pantry.filter(p=>{if(!p||!unwantedStarterPantryNames.has(String(p.name||'')))return true;if(p.id&&!x.pendingDeletes.pantry.includes(p.id))x.pendingDeletes.pantry.push(p.id);return false;});
    x.fixedShoppingUpdatedAt=Number(x.fixedShoppingUpdatedAt)||0;
    x.recipes=x.recipes.filter(r=>!exampleRecipeNames.has(r.name)).map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
    return x;
@@ -175,7 +181,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v59</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v60</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){

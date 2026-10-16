@@ -76,3 +76,6 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 - Bygger direkte på den fungerende filstrukturen fra v52; øvrig layout og funksjonalitet er beholdt.
 
 - Rettet en oppstartsfeil i v55: appen forsøkte å eksportere den gamle funksjonen `togglePantry`, som ikke lenger fantes. v57 eksporterer `togglePantryByKey` korrekt.
+
+
+Versjon 61: Registrerings- og innloggingsknappene starter handlingen direkte, og uventede feil fra kontotjenesten vises i en melding. Øvrig appfunksjonalitet og layout er videreført fra v60.

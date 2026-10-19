@@ -195,3 +195,6 @@
 .pantry-item .fixed-item-actions .smallbtn[aria-label^="Rediger"] { width:65px !important; min-width:65px !important; padding:8px 8px !important; }
 .pantry-item .fixed-item-actions .smallbtn[aria-label^="Slett"] { width:26px !important; min-width:26px !important; padding:0 !important; display:inline-flex; align-items:center; justify-content:center; }
 @media(max-width:480px) { .pantry-item > .pantry-item-main { gap:10px !important; } .pantry-item .fixed-item-actions { gap:8px !important; } .pantry-item .fixed-item-actions .smallbtn { height:38px !important; min-height:38px !important; font-size:13px !important; } }
+
+/* v64: meal names in the week plan open their in-app recipe */
+.meal-recipe-link{display:block;width:100%;padding:0;text-align:left;background:transparent;color:inherit;border:0;border-radius:0}.meal-recipe-link strong{display:block;text-decoration:underline;text-decoration-color:#e8b89d;text-underline-offset:3px}.meal-recipe-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}.recipe-instructions{white-space:normal;line-height:1.5}.recipe-original-link{display:block;text-align:center;text-decoration:none}

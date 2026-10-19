@@ -1,10 +1,10 @@
-# Familiemat v63
+# Familiemat v64
 
-## Nytt i v63
+## Nytt i v64
 - «Ny uke» bevarer statusen «Går tom» på alle basisvarer. Å starte en ny uke skal ikke fjerne hakene i Basisvarer.
 - Når en basisvare krysses av som kjøpt i Handleliste, fjernes fortsatt haken «Går tom» for den aktuelle basisvaren.
 - Beholder den fungerende basisvare-synkroniseringen fra v59 og layouten fra de senere versjonene.
-- Oppdatert versjonsmerking og cache til v63.
+- Oppdatert versjonsmerking og cache til v64.
 
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
@@ -86,3 +86,8 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 
 
 Versjon 61: Registrerings- og innloggingsknappene starter handlingen direkte, og uventede feil fra kontotjenesten vises i en melding. Øvrig appfunksjonalitet og layout er videreført fra v60.
+
+
+## v64
+- Ukemenyen vises fra tirsdag til søndag, med mandag sist, uten å endre de interne dagindeksene.
+- Middagsnavnene i ukeplanen kan trykkes på for å åpne oppskriften direkte i appen, med ingredienser og fremgangsmåte.

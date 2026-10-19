@@ -1,4 +1,8 @@
-# Familiemat v65
+# Familiemat v66
+
+## Nytt i v66
+- Rettet feil der oppskrifter med bestemte navn, blant annet «Taco», ble filtrert bort ved innlasting eller skysynkronisering. Oppskrifter og ingredienslister beholdes nå uavhengig av navn.
+- Oppdatert versjonsmerking og cache til v66.
 
 ## Nytt i v65
 - «Ny uke» bevarer statusen «Går tom» på alle basisvarer. Å starte en ny uke skal ikke fjerne hakene i Basisvarer.

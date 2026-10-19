@@ -12,9 +12,6 @@ let fixedTableReady=false;
 
 const days=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
 const recipeCategories=['Fisk','Kylling','Kjøtt','Vegetar','Pasta','Tex-Mex','Suppe','Lett middag','Pizza','Gryte','Annet'];
-const exampleRecipeNames=new Set([
- 'Spaghetti bolognese','Taco','Laks med poteter','Kyllinggryte','Hjemmelaget pizza','Fiskekaker med poteter'
-]);
 const starterPantry=[];
 // Tidligere automatisk opprettede startvarer fjernes én gang ved innlasting.
 const unwantedStarterPantryNames=new Set(['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir']);
@@ -37,7 +34,7 @@ function load(){
    // Fjern gamle standardvarer som appen la inn automatisk, men behold brukerens egne varer med annen skrivemåte.
    x.pantry=x.pantry.filter(p=>{if(!p||!unwantedStarterPantryNames.has(String(p.name||'')))return true;if(p.id&&!x.pendingDeletes.pantry.includes(p.id))x.pendingDeletes.pantry.push(p.id);return false;});
    x.fixedShoppingUpdatedAt=Number(x.fixedShoppingUpdatedAt)||0;
-   x.recipes=x.recipes.filter(r=>!exampleRecipeNames.has(r.name)).map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
+   x.recipes=x.recipes.map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
    return x;
   }
  }catch(e){}
@@ -110,7 +107,7 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
  const ff=await fetchFixedShopping();
  const pending=data.pendingDeletes||{recipes:[],pantry:[]};
  const localById=new Map(data.recipes.filter(r=>r.id).map(r=>[r.id,r]));
- for(const r of (rr.data||[])){if(exampleRecipeNames.has(r.name)||pending.recipes.includes(r.id))continue;localById.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}
+ for(const r of (rr.data||[])){if(pending.recipes.includes(r.id))continue;localById.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}
  const localsWithoutId=data.recipes.filter(r=>!r.id);
  data.recipes=[...localById.values(),...localsWithoutId];
  const pantryById=new Map(data.pantry.filter(p=>p.id).map(p=>[p.id,p]));
@@ -165,7 +162,7 @@ async function syncLocalChanges(){if(!familyId||!authSession)return;if(cloudBusy
  const [rr,pp,ww]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle()]);
  if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
  const ff=await fetchFixedShopping();
- const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){if(exampleRecipeNames.has(r.name))continue;recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
+ const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
  const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){const local=pantryMap.get(p.id);pantryMap.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}data.pantry=[...pantryMap.values()];
  const fixedMap2=new Map((data.fixedShopping||[]).map(x=>[x.id,x])); for(const f of (ff.data||[])){fixedMap2.set(f.id,mergeFixedRow(f,fixedMap2.get(f.id)));} data.fixedShopping=[...fixedMap2.values()]; fixedTableReady=true;
  if(ww.data?.days){const plan=ww.data.days;applyPantryCategories(plan.pantryCategories);const remoteDeleted=new Set(Array.isArray(plan.fixedShoppingDeleted)?plan.fixedShoppingDeleted:[]);const fixedMap=new Map((data.fixedShopping||[]).map(x=>[x.id,x]));for(const f of (Array.isArray(plan.fixedShopping)?plan.fixedShopping:[])){if(f.id&&!remoteDeleted.has(f.id)&&!fixedMap.has(f.id))fixedMap.set(f.id,mergeFixedRow(f,null));}data.fixedShopping=[...fixedMap.values()].filter(x=>!remoteDeleted.has(x.id));}
@@ -182,7 +179,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v65</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v66</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){

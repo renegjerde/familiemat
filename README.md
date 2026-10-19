@@ -1,103 +1,17 @@
-# Familiemat v66
+# CM Mobile v2.23 — Matchday commentary and goal celebrations
 
-## Nytt i v66
-- Rettet feil der oppskrifter med bestemte navn, blant annet «Taco», ble filtrert bort ved innlasting eller skysynkronisering. Oppskrifter og ingredienslister beholdes nå uavhengig av navn.
-- Oppdatert versjonsmerking og cache til v66.
+## Changes in v2.23
+- Match commentary now names the involved player for shots/chances, goals, yellow cards, second-yellow dismissals, direct red cards and injuries.
+- Chance commentary differentiates between dangerous opportunities, shots on target and efforts off target, and can mention the player who created the chance.
+- Goal commentary uses the scorer and, when available, the assister.
+- When a goal is scored, the match panel, headline and commentary flash five times in the scoring club's primary colour. Team colours are mapped for a range of clubs; other clubs receive a deterministic fallback colour.
+- Quiet-minute narrative text no longer overwrites commentary for a match event. Half-time handling still triggers normally.
 
-## Nytt i v65
-- «Ny uke» bevarer statusen «Går tom» på alle basisvarer. Å starte en ny uke skal ikke fjerne hakene i Basisvarer.
-- Når en basisvare krysses av som kjøpt i Handleliste, fjernes fortsatt haken «Går tom» for den aktuelle basisvaren.
-- Beholder den fungerende basisvare-synkroniseringen fra v59 og layouten fra de senere versjonene.
-- Oppdatert versjonsmerking og cache til v65.
+## Files
+- `index.html` — playable game.
+- `README.md` — version notes.
 
-
-Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
-
-## Nytt i v47
-- Fast handel bruker nå samme kompakte kortutforming som Basisvarer.
-- Jevnere høyde, avstand, innvendige marger og vertikal justering av avkrysningsboks, varenavn og handlingsknapper.
-- Kun visuelle endringer; varedata, kategorier, synkronisering og avkrysningslogikk er urørt.
-- Oppdatert cacheversjon til v47.
-
-## Nytt i v46
-- Mer kompakte lister og kort, med litt mindre vertikal avstand på mobil.
-- Sekundærknapper som «Rediger» og «Bytt» er roligere og mindre, mens hovedhandlingene fortsatt er tydelige.
-- Skjemaer, kategorioverskrifter og kort følger en jevnere spacing-skala.
-- Oppdatert cacheversjon til v46.
-
-## Nytt i v45
-- Jevnere utforming av knapper, handlingsknapper, kort, lister og skjemafelt på tvers av menyene.
-- Mer konsekvent størrelse, høyde, avrunding og avstand på primære og sekundære knapper.
-- Kategoriene i nedtrekksmenyene for basisvarer og Fast handel sorteres alfabetisk.
-- Handlelistens egen kategorirekkefølge beholdes uendret.
-- Oppdatert cacheversjon til v45.
-
-## Nytt i v44
-- Basisvarers manuelt valgte kategori brukes også i handlelisten og lagres i ukedataene i skyen.
-- Kategorivalg bevares når basisvarer synkroniseres, også når databasen ikke har et eget kategorifelt.
-- Knappen for å endre basisvarekategori heter nå «Rediger», i tråd med resten av appen.
-
-## Nytt i v43
-- Avkryssede varer samles nederst i handlelisten under en egen overskrift: **Kjøpt**.
-- Varer som ikke er kjøpt, vises øverst sortert etter butikkategori og alfabetisk.
-- Avkryssing kan angres: varen flyttes tilbake til den vanlige listen.
-- Fjerner den tidligere knappen «Fjern kjøpte varer», som ikke oppførte seg pålitelig.
-- Kjøpte varer bevares når handlelisten bygges på nytt. Når en ny uke startes, nullstilles kjøpsmarkeringene slik at aktuelle varer kan komme tilbake.
-- Oppdaterer app- og service-worker-cache til v44.
-
-## Funksjoner
-- Ukeplan med middager og tidligere uker.
-- Oppskrifter med ingredienser og porsjoner.
-- Handleliste bygget fra ukeplan, basisvarer som går tomme og aktive varer i Fast handel.
-- Basisvarer med mulighet for manuell kategorisering.
-- Fast handel med mengde, enhet, kategori og aktiv/inaktiv-status.
-- Lokal lagring og valgfri familiesynkronisering via Supabase.
-
-## Filer
-- `index.html` – app-shell og versjonerte CSS/JS-filer.
-- `app.js` – app, lokal lagring, handleliste, synkronisering og brukergrensesnitt.
-- `styles.css` – utforming og mobilvisning.
-- `manifest.json` – PWA-oppsett.
-- `service-worker.js` – cache for appen.
-- `fixed-shopping.sql` – Supabase-tabell og policyer for Fast handel.
-
-## Supabase
-Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.sql` i Supabase SQL Editor. Ikke legg databasepassord eller secret/service-role keys i klientkoden.
-
-
-## Feilretting i v43
-- Fjernet utdaterte funksjonsreferanser som stoppet JavaScript under oppstart.
-- Oppdatert cacheversjon for å sikre at nettleseren laster de nye filene.
-
-
-## Nytt i v52
-- Når «Ny uke» brukes, arkiveres den gamle middagsplanen som forrige kalenderuke, ikke som uken som akkurat har startet.
-- Arkiveringsdatoen og ukeetiketten bruker ISO-uken fra sju dager før opprettelsen, også rundt årsskiftet.
-- Oppdaterer appversjon, filreferanser og service-worker-cache til v52.
-
-## Nytt i v50
-- Fast handel bruker nå samme kompakte listeavstand og lettere varenavn som Basisvarer.
-- Rediger-knappene er justert nærmere samme størrelse og stil.
-- Lagt til en diskret versjonsmerking øverst til høyre i appen.
-- Oppdatert cacheversjon og filreferanser til v50.
-
-
-## Nytt i v57
-- Basisvarer avkrysses med stabil identifikasjon (vare-ID, eller navn når ID mangler), ikke med en sorteringsavhengig listeindeks.
-- Bygger direkte på den fungerende filstrukturen fra v52; øvrig layout og funksjonalitet er beholdt.
-
-- Rettet en oppstartsfeil i v55: appen forsøkte å eksportere den gamle funksjonen `togglePantry`, som ikke lenger fantes. v57 eksporterer `togglePantryByKey` korrekt.
-
-
-Versjon 61: Registrerings- og innloggingsknappene starter handlingen direkte, og uventede feil fra kontotjenesten vises i en melding. Øvrig appfunksjonalitet og layout er videreført fra v60.
-
-
-## v65
-- Ukemenyen vises fra tirsdag til søndag, med mandag sist, uten å endre de interne dagindeksene.
-- Middagsnavnene i ukeplanen kan trykkes på for å åpne oppskriften direkte i appen, med ingredienser og fremgangsmåte.
-
-
-## v65
-- Oppskriftredigering har nå kategorivelger per ingrediens.
-- Valgt ingredienskategori følger med til handlelisten, slik at flere varer kan flyttes fra «Annet» til riktig kategori.
-- Utvidet automatisk kategorisering for pastinakk og supper/buljong.
+## Validation
+- Inline JavaScript syntax checked with Node.js.
+- ZIP integrity checked after packaging.
+- Full browser and multi-match testing remains necessary to verify event pacing and visual behaviour on mobile devices.

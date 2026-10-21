@@ -1,8 +1,8 @@
-# Familiemat v66
+# Familiemat v67
 
-## Nytt i v66
+## Nytt i v67
 - Rettet feil der oppskrifter med bestemte navn, blant annet «Taco», ble filtrert bort ved innlasting eller skysynkronisering. Oppskrifter og ingredienslister beholdes nå uavhengig av navn.
-- Oppdatert versjonsmerking og cache til v66.
+- Oppdatert versjonsmerking og cache til v67.
 
 ## Nytt i v65
 - «Ny uke» bevarer statusen «Går tom» på alle basisvarer. Å starte en ny uke skal ikke fjerne hakene i Basisvarer.
@@ -101,3 +101,7 @@ Versjon 61: Registrerings- og innloggingsknappene starter handlingen direkte, og
 - Oppskriftredigering har nå kategorivelger per ingrediens.
 - Valgt ingredienskategori følger med til handlelisten, slik at flere varer kan flyttes fra «Annet» til riktig kategori.
 - Utvidet automatisk kategorisering for pastinakk og supper/buljong.
+
+
+## v67
+Ny uke beholder «går tom»-status for basisvarer og bygger handlelisten på nytt uten å fjerne basisvarer som fortsatt mangler. Varer som allerede er markert som kjøpt fjernes fra den nye handlelisten.

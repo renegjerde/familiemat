@@ -179,7 +179,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v66</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v67</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){
@@ -247,16 +247,23 @@ async function archiveCurrentWeek(){
 }
 async function newWeek(){
  if(!data.week.some(Boolean))return;
- if(confirm('Starte en ny uke nå? Den aktive ukeplanen arkiveres, og middagsplanen tømmes. Dette skjer bare når du bekrefter. Oppskrifter og basisvarer beholdes.')){
-   // Ny uke skal bare nullstille ukeplanen/handlelistens kjøpt-status. Behold statusen
-   // «går tom» for hver basisvare uendret gjennom oppbyggingen av handlelisten.
-   const pantryLowSnapshot=data.pantry.map(item=>({item,low:!!item.low}));
+ if(confirm('Starte en ny uke nå? Den aktive ukeplanen arkiveres, og middagsplanen tømmes. Basisvarer du fortsatt mangler beholdes på handlelisten.')){
+   // Basisvarestatus er uavhengig av ukeplanen. Ta et snapshot med stabil nøkkel,
+   // slik at «går tom»-hakene ikke nullstilles når ny uke bygges opp.
+   const pantryLowSnapshot=new Map(data.pantry.map(item=>[
+     String(item.id||String(item.name||'').trim().toLowerCase()), !!item.low
+   ]));
    await archiveCurrentWeek();
    data.week=Array(7).fill(null);
    data.shoppingHidden=[];
+   // Fjern bare varer som allerede er markert som kjøpt. Uferdige basisvarer blir
+   // lagt inn igjen av syncShopping() så lenge pantry.low fortsatt er true.
    data.shopping=(data.shopping||[]).filter(x=>!x.done);
+   for(const item of data.pantry){
+     const key=String(item.id||String(item.name||'').trim().toLowerCase());
+     if(pantryLowSnapshot.has(key))item.low=pantryLowSnapshot.get(key);
+   }
    syncShopping();
-   pantryLowSnapshot.forEach(({item,low})=>{item.low=low;});
    saveAndSync();
    render();
  }

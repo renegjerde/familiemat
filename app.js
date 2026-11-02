@@ -386,8 +386,18 @@ function saveRecipe(i,day=null){
  const catsSelected=[...document.querySelectorAll('.rcat:checked')].map(x=>x.value);
  const r={name:document.getElementById('rname').value.trim(),servings:Number(document.getElementById('rserv').value)||4,ingredients:ings,instructions:document.getElementById('rinst').value,url:document.getElementById('rurl').value.trim(),days:daysSelected,categories:catsSelected};
  if(!r.name||!ings.length)return alert('Fyll inn navn og minst én ingrediens.');
- if(i<0){data.recipes.push(r);if(day!==null)data.week[day]=r.name}else data.recipes[i]={...data.recipes[i],...r};
- syncShopping();saveAndSync();closeModal();render()
+ try{
+  if(i<0){data.recipes.push(r);if(day!==null)data.week[day]=r.name}else data.recipes[i]={...data.recipes[i],...r};
+  syncShopping();
+  saveAndSync();
+  page='recipes';
+  closeModal();
+  render();
+  window.scrollTo(0,0);
+ }catch(err){
+  console.error('Kunne ikke lagre oppskriften',err);
+  alert('Oppskriften kunne ikke lagres. Kontroller lagringsplassen i nettleseren og prøv igjen.');
+ }
 }
 function newRecipe(){recipeForm()};function editRecipe(i){recipeForm(i)}
 function deleteRecipe(i){const item=data.recipes[i];if(!item)return;if(confirm('Slette oppskriften?')){if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[]};data.pendingDeletes.recipes.push(item.id);}data.recipes.splice(i,1);data.week=data.week.map(x=>data.recipes.some(r=>r.name===x)?x:null);syncShopping();saveAndSync();render()}}

@@ -1,4 +1,9 @@
-# Familiemat v71
+# Familiemat v72
+
+## Nytt i v72
+- Etter lagring av en ny eller redigert oppskrift går appen alltid tilbake til oversikten over Oppskrifter.
+- Oppskriftslisten vises fra toppen etter lagring, også når skjemaet ble åpnet fra ukeplanen.
+- Hvis lokal lagring feiler, blir brukeren varslet og skjemaet lukkes ikke.
 
 ## Nytt i v71
 - Ny importmulighet fra bilde/skjermbilde i Oppskrifter.

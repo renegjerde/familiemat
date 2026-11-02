@@ -179,7 +179,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v67</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v68</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){
@@ -247,23 +247,16 @@ async function archiveCurrentWeek(){
 }
 async function newWeek(){
  if(!data.week.some(Boolean))return;
- if(confirm('Starte en ny uke nå? Den aktive ukeplanen arkiveres, og middagsplanen tømmes. Basisvarer du fortsatt mangler beholdes på handlelisten.')){
-   // Basisvarestatus er uavhengig av ukeplanen. Ta et snapshot med stabil nøkkel,
-   // slik at «går tom»-hakene ikke nullstilles når ny uke bygges opp.
-   const pantryLowSnapshot=new Map(data.pantry.map(item=>[
-     String(item.id||String(item.name||'').trim().toLowerCase()), !!item.low
-   ]));
+ if(confirm('Starte en ny uke nå? Den aktive ukeplanen arkiveres, og middagsplanen tømmes. Dette skjer bare når du bekrefter. Oppskrifter og basisvarer beholdes.')){
+   // Ny uke skal bare nullstille ukeplanen/handlelistens kjøpt-status. Behold statusen
+   // «går tom» for hver basisvare uendret gjennom oppbyggingen av handlelisten.
+   const pantryLowSnapshot=data.pantry.map(item=>({item,low:!!item.low}));
    await archiveCurrentWeek();
    data.week=Array(7).fill(null);
    data.shoppingHidden=[];
-   // Fjern bare varer som allerede er markert som kjøpt. Uferdige basisvarer blir
-   // lagt inn igjen av syncShopping() så lenge pantry.low fortsatt er true.
    data.shopping=(data.shopping||[]).filter(x=>!x.done);
-   for(const item of data.pantry){
-     const key=String(item.id||String(item.name||'').trim().toLowerCase());
-     if(pantryLowSnapshot.has(key))item.low=pantryLowSnapshot.get(key);
-   }
    syncShopping();
+   pantryLowSnapshot.forEach(({item,low})=>{item.low=low;});
    saveAndSync();
    render();
  }
@@ -294,43 +287,32 @@ async function recentMealNames(){
 async function suggestWeek(){
  const recipes=data.recipes.filter(r=>r&&r.name);
  const fish=recipes.filter(r=>(r.categories||[]).includes('Fisk'));
- if(fish.length<2)return alert('For å foreslå en uke med to ulike fiskemiddager trenger du minst to oppskrifter som er kategorisert som «Fisk».');
- const fishSlots=[];
- for(let d=0;d<7;d++) if(eligibleRecipes(d).some(r=>fish.includes(r))) fishSlots.push(d);
- if(fishSlots.length<2)return alert('Jeg finner ikke to ulike dager der fiskerettene dine er aktuelle. Sjekk «Aktuelle dager» på fiskemiddagene.');
+ const mondayFish=eligibleRecipes(0).filter(r=>fish.includes(r));
+ const midweekFishDays=[2,3]; // Onsdag eller torsdag
+ const midweekFish=midweekFishDays.filter(d=>eligibleRecipes(d).some(r=>fish.includes(r)));
+ if(!mondayFish.length||!midweekFish.length)return alert('For å foreslå ukemeny med to fiskemiddager trenger du minst én fiskerett som passer på mandag og én som passer onsdag eller torsdag. Sjekk «Aktuelle dager» på fiskerettene.');
  const recent=await recentMealNames();
  const freshScore=r=>recent.has(r.name)?1:0;
  let best=null;
- for(let tries=0;tries<300&&!best;tries++){
-   const daysForFish=shuffle(fishSlots).slice(0,2);
-   const plan=Array(7).fill(null); const used=new Set(); let ok=true;
-   for(const d of daysForFish){
-     const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
-     if(!choices.length){ok=false;break;} const r=choices[0]; plan[d]=r; used.add(r);
-   }
-   if(!ok)continue;
+ for(let tries=0;tries<500&&!best;tries++){
+   const midweekDay=shuffle(midweekFish)[0];
+   const plan=Array(7).fill(null); const used=new Set();
+   const mondayChoices=shuffle(mondayFish).sort((a,b)=>freshScore(a)-freshScore(b));
+   const midweekChoices=shuffle(eligibleRecipes(midweekDay).filter(r=>fish.includes(r))).sort((a,b)=>freshScore(a)-freshScore(b));
+   const monday=mondayChoices.find(r=>!midweekChoices.includes(r))||mondayChoices[0];
+   const midweek=midweekChoices.find(r=>r!==monday);
+   if(!monday||!midweek)continue;
+   plan[0]=monday;plan[midweekDay]=midweek;used.add(monday);used.add(midweek);
+   let ok=true;
    for(let d=0;d<7;d++){
      if(plan[d])continue;
-     const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
-     if(choices.length){plan[d]=choices[0];used.add(choices[0]);}
+     const choices=shuffle(eligibleRecipes(d).filter(r=>!fish.includes(r)&&!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
+     if(!choices.length){ok=false;break;}
+     plan[d]=choices[0];used.add(choices[0]);
    }
-   if(plan.every(Boolean))best=plan;
+   if(ok&&plan.every(Boolean))best=plan;
  }
- if(!best){
-   const plan=Array(7).fill(null); const used=new Set();
-   const fishDayChoices=shuffle(fishSlots); const chosenFish=[];
-   for(const d of fishDayChoices){
-     const choices=shuffle(eligibleRecipes(d).filter(r=>fish.includes(r)&&!chosenFish.includes(r))).sort((a,b)=>freshScore(a)-freshScore(b));
-     if(choices.length){plan[d]=choices[0];chosenFish.push(choices[0]);used.add(choices[0]);if(chosenFish.length===2)break;}
-   }
-   if(chosenFish.length<2)return alert('Jeg klarte ikke å finne to ulike fiskemiddager som passer på ulike dager.');
-   for(let d=0;d<7;d++) if(!plan[d]){
-     const choices=shuffle(eligibleRecipes(d).filter(r=>!used.has(r))).sort((a,b)=>freshScore(a)-freshScore(b));
-     plan[d]=choices[0]||shuffle(eligibleRecipes(d))[0]||null;
-     if(plan[d])used.add(plan[d]);
-   }
-   best=plan;
- }
+ if(!best)return alert('Jeg klarte ikke å lage en komplett ukemeny med fisk på mandag og enten onsdag eller torsdag. Sjekk at du har nok oppskrifter og «Aktuelle dager» satt riktig.');
  data.week=best.map(r=>r?r.name:null);syncShopping();saveAndSync();render();
 }
 function showRecipeDetails(recipeIndex){const r=data.recipes[recipeIndex];if(!r)return;const ingredients=(r.ingredients||[]).map(x=>`<li>${esc(x[1])} ${esc(x[2])} ${esc(x[0])}</li>`).join('');const instructions=String(r.instructions||'').trim();modal(`<h2>🍽️ ${esc(r.name)}</h2><p class="small">${esc(r.servings||4)} porsjoner</p><h3>Ingredienser</h3><ul class="ingredients">${ingredients||'<li>Ingen ingredienser lagt inn ennå.</li>'}</ul><h3>Fremgangsmåte</h3><p class="recipe-instructions">${instructions?esc(instructions).replace(/\n/g,'<br>'):'Ingen fremgangsmåte lagt inn ennå.'}</p>${r.url?`<a class="btn full secondary recipe-original-link" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Åpne originaloppskrift ↗</a>`:''}`)}

@@ -1,6 +1,6 @@
-# Familiemat v68
+# Familiemat v69
 
-## Nytt i v68
+## Nytt i v69\n- Menylinjen er stabilt festet nederst i visningen, også ved scrolling.\n- PWA-manifestet ber om stående visning på mobil. Merk: iOS Safari kan fortsatt rotere i vanlig nettlesermodus; orienteringslås håndteres best når appen er installert på hjemskjermen.\n- Ny kategori «Pålegg» for blant annet skinke, fårepølse, leverpostei, salami og servelat.\n- Oppdatert versjonsmerking og cache til v69.\n\n## Nytt i v68
 - Rettet feil der oppskrifter med bestemte navn, blant annet «Taco», ble filtrert bort ved innlasting eller skysynkronisering. Oppskrifter og ingredienslister beholdes nå uavhengig av navn.
 - Oppdatert versjonsmerking og cache til v68.
 

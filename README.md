@@ -1,4 +1,10 @@
-# Familiemat v72
+# Familiemat v73
+
+## Nytt i v73
+- Du kan nå lage en ny oppskrift med utgangspunkt i en oppskrift som allerede ligger inne.
+- Ingredienser, mengder, enheter, kategorier, porsjoner, fremgangsmåte og lenke kopieres til et nytt redigerbart skjema.
+- Den opprinnelige oppskriften endres ikke; den nye varianten lagres som en egen oppskrift.
+- Oppdatert versjonsnummer i toppfeltet og cache til v73.
 
 ## Nytt i v72
 - Etter lagring av en ny eller redigert oppskrift går appen alltid tilbake til oversikten over Oppskrifter.

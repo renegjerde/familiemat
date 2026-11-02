@@ -1,6 +1,23 @@
-# Familiemat v69
+# Familiemat v71
 
-## Nytt i v70\n- Handlelisten sorteres først etter Frukt og grønt, Meieri og egg, Kjøtt og fisk og Pålegg.\n- Justert handlelisteknapp/navigasjon for å sikre at den aktiveres som en knapp på mobil.\n\n## Nytt i v69\n- Menylinjen er stabilt festet nederst i visningen, også ved scrolling.\n- PWA-manifestet ber om stående visning på mobil. Merk: iOS Safari kan fortsatt rotere i vanlig nettlesermodus; orienteringslås håndteres best når appen er installert på hjemskjermen.\n- Ny kategori «Pålegg» for blant annet skinke, fårepølse, leverpostei, salami og servelat.\n- Oppdatert versjonsmerking og cache til v69.\n\n## Nytt i v68
+## Nytt i v71
+- Ny importmulighet fra bilde/skjermbilde i Oppskrifter.
+- Tekstgjenkjenning på norsk og engelsk fyller ut navn, porsjoner, ingredienser og eventuell fremgangsmåte i et redigerbart skjema.
+- Nettimporten er beholdt, og teksttolkingen støtter flere vanlige overskrifter og ingredienslinjer.
+- Bilder behandles i nettleseren; Tesseract.js og språkdata lastes fra CDN ved første bruk.
+- Oppdatert versjonsmerking og cache til v71.
+
+## Nytt i v70
+- Handlelisten sorteres først etter Frukt og grønt, Meieri og egg, Kjøtt og fisk og Pålegg.
+- Justert handlelisteknapp/navigasjon for å sikre at den aktiveres som en knapp på mobil.
+
+## Nytt i v69
+- Menylinjen er stabilt festet nederst i visningen, også ved scrolling.
+- PWA-manifestet ber om stående visning på mobil. Merk: iOS Safari kan fortsatt rotere i vanlig nettlesermodus; orienteringslås håndteres best når appen er installert på hjemskjermen.
+- Ny kategori «Pålegg» for blant annet skinke, fårepølse, leverpostei, salami og servelat.
+- Oppdatert versjonsmerking og cache til v69.
+
+## Nytt i v68
 - Rettet feil der oppskrifter med bestemte navn, blant annet «Taco», ble filtrert bort ved innlasting eller skysynkronisering. Oppskrifter og ingredienslister beholdes nå uavhengig av navn.
 - Oppdatert versjonsmerking og cache til v68.
 

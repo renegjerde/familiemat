@@ -221,3 +221,6 @@
 .pantry-more-menu button{border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:8px;font:inherit;font-size:14px;color:#43352e;white-space:nowrap}
 .pantry-more-menu button:active{background:#f8eee8}
 .pantry-more-menu .delete-action{color:#b33b3b}
+
+/* v80: shared compact overflow menu in Fast handel */
+.fixed-item .pantry-more{align-self:center}

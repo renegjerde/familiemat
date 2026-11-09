@@ -208,3 +208,16 @@
 .pantry-item .fixed-item-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .pantry-item .smallbtn{font-size:12px;padding:7px 8px}
 @media(max-width:390px){.pantry-item .fixed-item-actions{gap:3px}.pantry-item .smallbtn{font-size:11px;padding:6px 6px}}
+
+/* v79: compact three-dot actions menu for pantry rows */
+.pantry-item{position:relative;overflow:visible}
+.pantry-item-main{position:relative}
+.pantry-more{position:relative;flex:0 0 auto;margin-left:8px;z-index:3}
+.pantry-more summary{list-style:none;cursor:pointer;width:42px;height:42px;border-radius:12px;background:#f8e4dc;display:flex;align-items:center;justify-content:center;gap:3px}
+.pantry-more summary::-webkit-details-marker{display:none}
+.pantry-more summary span{width:4px;height:4px;border-radius:50%;background:#8a4b32;display:block}
+.pantry-more[open] summary{background:#f2d4c7}
+.pantry-more-menu{position:absolute;right:0;top:48px;min-width:190px;background:#fff;border:1px solid #eaded6;border-radius:13px;padding:6px;box-shadow:0 8px 24px rgba(60,40,25,.16);display:flex;flex-direction:column;z-index:20}
+.pantry-more-menu button{border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:8px;font:inherit;font-size:14px;color:#43352e;white-space:nowrap}
+.pantry-more-menu button:active{background:#f8eee8}
+.pantry-more-menu .delete-action{color:#b33b3b}

@@ -1,13 +1,14 @@
-# Familiemat v75
+# Familiemat v76
 
-## Nytt i v75
+## Nytt i v76
+- Endret Oppskrifter-ikonet fra rødt emoji-symbol til et nøytralt ikon som følger aktiv/inaktiv menyfarge.
 - Rettet feil der slettede basisvarer kunne komme tilbake fra skydata ved synkronisering.
 - Sletting av basisvarer lagres nå også som et navnebasert slettespor, i tillegg til eksisterende ID-baserte slettinger.
 - Skyimport filtrerer bort basisvarer som er slettet, slik at de ikke dukker opp igjen etter oppdatering eller synkronisering.
 - De uønskede gamle standardvarene «Bleier» og «Kjøkkenpapir» ryddes bort ved oppstart og markeres for sletting i skyen.
 - Hvis en vare legges inn manuelt på nytt, oppheves slettemarkeringen for akkurat den varen.
 - Ny uke-logikken fra v73 er beholdt: «går tom»-kryss og basisvarer påvirkes ikke av denne rettelsen.
-- Oppdatert versjonsnummer, filreferanser og cache til v75.
+- Oppdatert versjonsnummer, filreferanser og cache til v76.
 
 ## Nytt i v73
 - Du kan nå lage en ny oppskrift med utgangspunkt i en oppskrift som allerede ligger inne.

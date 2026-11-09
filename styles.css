@@ -224,3 +224,10 @@
 
 /* v80: shared compact overflow menu in Fast handel */
 .fixed-item .pantry-more{align-self:center}
+
+/* v81: overflow actions on weekly meal cards */
+.day-actions{display:flex;align-items:center;justify-content:center;min-width:46px}
+.week-more{margin-left:0}
+.week-more summary{width:42px;height:42px}
+.week-more .pantry-more-menu{top:46px}
+.day{overflow:visible}

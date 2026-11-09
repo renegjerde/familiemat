@@ -1,6 +1,7 @@
-# Familiemat v77
+# Familiemat v78
 
-## Nytt i v77
+## Nytt i v78
+- Redesignet bunnmenyikonene med tydeligere og mer forskjellige silhuetter: hus, åpen bok, sjekkliste, handlevogn og oppbevaringsglass.
 - Fått egne, nøytrale SVG-symboler i bunnmenyen for Uke, Oppskrifter, Handleliste, Fast handel og Basisvarer.
 - Basisvarer kan flyttes direkte til Fast handel fra basisvarelisten.
 - Endret Oppskrifter-ikonet fra rødt emoji-symbol til et nøytralt ikon som følger aktiv/inaktiv menyfarge.
@@ -10,7 +11,7 @@
 - De uønskede gamle standardvarene «Bleier» og «Kjøkkenpapir» ryddes bort ved oppstart og markeres for sletting i skyen.
 - Hvis en vare legges inn manuelt på nytt, oppheves slettemarkeringen for akkurat den varen.
 - Ny uke-logikken fra v73 er beholdt: «går tom»-kryss og basisvarer påvirkes ikke av denne rettelsen.
-- Oppdatert versjonsnummer, filreferanser og cache til v77.
+- Oppdatert versjonsnummer, filreferanser og cache til v78.
 
 ## Nytt i v73
 - Du kan nå lage en ny oppskrift med utgangspunkt i en oppskrift som allerede ligger inne.

@@ -198,3 +198,13 @@
 
 /* v64: meal names in the week plan open their in-app recipe */
 .meal-recipe-link{display:block;width:100%;padding:0;text-align:left;background:transparent;color:inherit;border:0;border-radius:0}.meal-recipe-link strong{display:block;text-decoration:underline;text-decoration-color:#e8b89d;text-underline-offset:3px}.meal-recipe-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}.recipe-instructions{white-space:normal;line-height:1.5}.recipe-original-link{display:block;text-align:center;text-decoration:none}
+
+/* v77: distinct monochrome navigation icons */
+.nav .ico{display:flex;align-items:center;justify-content:center;height:27px;margin:0 auto 3px;padding:0!important;background:transparent!important;width:auto!important;min-width:0!important;border-radius:0!important}
+.nav .ico svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav button.active .ico{background:transparent!important}
+.pantry-item-main{display:flex;align-items:center;gap:10px;width:100%;min-width:0}
+.pantry-item-name{flex:1;min-width:0}
+.pantry-item .fixed-item-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.pantry-item .smallbtn{font-size:12px;padding:7px 8px}
+@media(max-width:390px){.pantry-item .fixed-item-actions{gap:3px}.pantry-item .smallbtn{font-size:11px;padding:6px 6px}}

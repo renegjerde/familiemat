@@ -14,7 +14,7 @@ const days=['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
 const recipeCategories=['Fisk','Kylling','Kjøtt','Vegetar','Pasta','Tex-Mex','Suppe','Lett middag','Pizza','Gryte','Annet'];
 const starterPantry=[];
 // Tidligere automatisk opprettede startvarer fjernes én gang ved innlasting.
-const unwantedStarterPantryNames=new Set(['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir']);
+const unwantedStarterPantryNames=new Set(['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir','Bleier','Kjøkkenpapir']);
 let data=load(); let page='week'; let showWeekHistory=false;
 function load(){
  try{
@@ -31,8 +31,18 @@ function load(){
    x.pendingDeletes.recipes=Array.isArray(x.pendingDeletes.recipes)?x.pendingDeletes.recipes:[];
    x.pendingDeletes.pantry=Array.isArray(x.pendingDeletes.pantry)?x.pendingDeletes.pantry:[];
    x.pendingDeletes.fixedShopping=Array.isArray(x.pendingDeletes.fixedShopping)?x.pendingDeletes.fixedShopping:[];
+   x.deletedPantryNames=Array.isArray(x.deletedPantryNames)?x.deletedPantryNames:[];
    // Fjern gamle standardvarer som appen la inn automatisk, men behold brukerens egne varer med annen skrivemåte.
-   x.pantry=x.pantry.filter(p=>{if(!p||!unwantedStarterPantryNames.has(String(p.name||'')))return true;if(p.id&&!x.pendingDeletes.pantry.includes(p.id))x.pendingDeletes.pantry.push(p.id);return false;});
+   x.pantry=x.pantry.filter(p=>{
+    if(!p)return false;
+    const key=String(p.name||'').trim().toLocaleLowerCase('nb-NO');
+    const legacy=unwantedStarterPantryNames.has(String(p.name||''));
+    const deleted=(x.deletedPantryNames||[]).some(n=>String(n).trim().toLocaleLowerCase('nb-NO')===key);
+    if(!legacy&&!deleted)return true;
+    if(key&&!x.deletedPantryNames.some(n=>String(n).trim().toLocaleLowerCase('nb-NO')===key))x.deletedPantryNames.push(String(p.name||'').trim());
+    if(p.id&&!x.pendingDeletes.pantry.includes(p.id))x.pendingDeletes.pantry.push(p.id);
+    return false;
+   });
    x.fixedShoppingUpdatedAt=Number(x.fixedShoppingUpdatedAt)||0;
    x.recipes=x.recipes.map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
    return x;
@@ -110,8 +120,9 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
  for(const r of (rr.data||[])){if(pending.recipes.includes(r.id))continue;localById.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}
  const localsWithoutId=data.recipes.filter(r=>!r.id);
  data.recipes=[...localById.values(),...localsWithoutId];
+ const deletedPantryNames=new Set((data.deletedPantryNames||[]).map(n=>String(n).trim().toLocaleLowerCase('nb-NO')));
  const pantryById=new Map(data.pantry.filter(p=>p.id).map(p=>[p.id,p]));
- for(const p of (pp.data||[])){if(pending.pantry.includes(p.id))continue;const local=pantryById.get(p.id);pantryById.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}
+ for(const p of (pp.data||[])){if(pending.pantry.includes(p.id)||deletedPantryNames.has(String(p.name||'').trim().toLocaleLowerCase('nb-NO')))continue;const local=pantryById.get(p.id);pantryById.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}
  const pantryWithoutId=data.pantry.filter(p=>!p.id);
  data.pantry=[...pantryById.values(),...pantryWithoutId];
  const plan=ww.data?.days;
@@ -163,7 +174,8 @@ async function syncLocalChanges(){if(!familyId||!authSession)return;if(cloudBusy
  if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
  const ff=await fetchFixedShopping();
  const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
- const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){const local=pantryMap.get(p.id);pantryMap.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}data.pantry=[...pantryMap.values()];
+ const deletedPantryNames=new Set((data.deletedPantryNames||[]).map(n=>String(n).trim().toLocaleLowerCase('nb-NO')));
+ const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){if(deletedPantryNames.has(String(p.name||'').trim().toLocaleLowerCase('nb-NO')))continue;const local=pantryMap.get(p.id);pantryMap.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}data.pantry=[...pantryMap.values()];
  const fixedMap2=new Map((data.fixedShopping||[]).map(x=>[x.id,x])); for(const f of (ff.data||[])){fixedMap2.set(f.id,mergeFixedRow(f,fixedMap2.get(f.id)));} data.fixedShopping=[...fixedMap2.values()]; fixedTableReady=true;
  if(ww.data?.days){const plan=ww.data.days;applyPantryCategories(plan.pantryCategories);const remoteDeleted=new Set(Array.isArray(plan.fixedShoppingDeleted)?plan.fixedShoppingDeleted:[]);const fixedMap=new Map((data.fixedShopping||[]).map(x=>[x.id,x]));for(const f of (Array.isArray(plan.fixedShopping)?plan.fixedShopping:[])){if(f.id&&!remoteDeleted.has(f.id)&&!fixedMap.has(f.id))fixedMap.set(f.id,mergeFixedRow(f,null));}data.fixedShopping=[...fixedMap.values()].filter(x=>!remoteDeleted.has(x.id));}
  syncShopping();save();
@@ -179,7 +191,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v73</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v75</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','⌂','Uke')}${nav('recipes','♨','Oppskrifter')}${nav('shopping','▤','Handleliste')}${nav('fixed','＋','Fast handel')}${nav('pantry','▧','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){return `<button type="button" class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${i}</span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){
@@ -362,10 +374,10 @@ function formatQty(q){return Number.isInteger(q)?q:String(Math.round(q*100)/100)
 function toggleShop(i){const item=data.shopping[i];if(!item)return;item.done=!item.done;const key=String(item.name||'').trim().toLowerCase();const pantry=data.pantry.find(p=>String(p.name||'').trim().toLowerCase()===key);if(pantry)pantry.low=!item.done;saveAndSync();render()}
 function togglePantryByName(encodedName){const key=decodeURIComponent(encodedName||'').trim().toLowerCase();const item=data.pantry.find(p=>String(p.name||'').trim().toLowerCase()===key);if(!item)return;item.low=!item.low;syncShopping();saveAndSync();render()}
 function addPantry(){modal(`<h2>Ny basisvare</h2><div class="field"><label>Navn</label><input id="pname" placeholder="F.eks. melk"></div><button class="btn full" onclick="savePantry()">Legg til</button>`)}
-function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;data.pantry.push({name:n,low:false,category:categorizeIngredient(n)});saveAndSync();closeModal();render()}
+function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;data.deletedPantryNames=(data.deletedPantryNames||[]).filter(x=>String(x).trim().toLocaleLowerCase('nb-NO')!==n.toLocaleLowerCase('nb-NO'));data.pantry.push({name:n,low:false,category:categorizeIngredient(n)});saveAndSync();closeModal();render()}
 function editPantryCategory(i){const item=data.pantry[i];if(!item)return;const selected=item.category||categorizeIngredient(item.name);const cats=categoryDropdownOrder.map(c=>`<option value="${esc(c)}" ${selected===c?'selected':''}>${esc(c)}</option>`).join('');modal(`<h2>Rediger kategori</h2><p class="small">${esc(item.name)}</p><div class="field"><label>Kategori</label><select id="pantrycat">${cats}</select></div><button class="btn full" onclick="savePantryCategory(${i})">Lagre kategori</button>`)}
 function savePantryCategory(i){const item=data.pantry[i];const category=document.getElementById('pantrycat')?.value;if(!item||!category)return;item.category=category;syncShopping();saveAndSync();closeModal();render()}
-async function deletePantry(i){const item=data.pantry[i];if(!item)return;if(confirm(`Vil du slette ${item.name} fra basisvarene?`)){if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[]};data.pendingDeletes.pantry.push(item.id);}data.pantry.splice(i,1);syncShopping();saveAndSync();render()}}
+async function deletePantry(i){const item=data.pantry[i];if(!item)return;if(confirm(`Vil du slette ${item.name} fra basisvarene?`)){data.deletedPantryNames=data.deletedPantryNames||[];const deletedKey=String(item.name||'').trim().toLocaleLowerCase('nb-NO');if(deletedKey&&!data.deletedPantryNames.some(n=>String(n).trim().toLocaleLowerCase('nb-NO')===deletedKey))data.deletedPantryNames.push(String(item.name||'').trim());if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[]};if(!data.pendingDeletes.pantry.includes(item.id))data.pendingDeletes.pantry.push(item.id);}data.pantry.splice(i,1);syncShopping();saveAndSync();render()}}
 function recipeForm(i=-1,day=null,prefill=null){
  const r=prefill||(i>=0?data.recipes[i]:{name:'',servings:4,ingredients:[['',1,'stk']],instructions:'',url:'',days:[],categories:[]});
  const selectedDays=new Set(r.days||[]), selectedCats=new Set(r.categories||[]);

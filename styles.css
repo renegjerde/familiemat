@@ -231,3 +231,14 @@
 .week-more summary{width:42px;height:42px}
 .week-more .pantry-more-menu{top:46px}
 .day{overflow:visible}
+
+/* v83: category editor in shopping list */
+.shop-row{display:flex;align-items:center;gap:10px;position:relative;overflow:visible}
+.shop-row .shop-item-name{flex:1;min-width:0}
+.shop-row .qty{white-space:nowrap}
+.shop-more{flex:0 0 auto;margin-left:2px}
+.shop-more summary{width:36px;height:36px;background:transparent}
+.shop-more summary span{background:#81776f}
+.shop-more[open] summary{background:#f8e4dc}
+.shop-row .pantry-more-menu{top:40px}
+.shop-row.done{opacity:.8}

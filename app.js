@@ -16,6 +16,24 @@ const starterPantry=[];
 // Tidligere automatisk opprettede startvarer fjernes én gang ved innlasting.
 const unwantedStarterPantryNames=new Set(['Mel','Sukker','Salt','Pepper','Olje','Smør','Kaffe','Ris','Pasta','Havregryn','Ketchup','Oppvaskmiddel','Toalettpapir','Bleier','Kjøkkenpapir']);
 let data=load(); let page='week'; let showWeekHistory=false;
+function pantryNameKey(value){return String(value||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('nb-NO');}
+function deduplicatePantryRows(rows,pendingDeletes){
+ const groups=new Map();
+ for(const row of (rows||[])){
+  if(!row)continue;
+  const key=pantryNameKey(row.name);
+  if(!key)continue;
+  const existing=groups.get(key);
+  if(!existing){groups.set(key,{...row});continue;}
+  existing.low=!!existing.low||!!row.low;
+  if(!existing.category&&row.category)existing.category=row.category;
+  if(existing.id&&row.id&&existing.id!==row.id){
+   pendingDeletes.pantry=pendingDeletes.pantry||[];
+   if(!pendingDeletes.pantry.includes(row.id))pendingDeletes.pantry.push(row.id);
+  }else if(!existing.id&&row.id){existing.id=row.id;}
+ }
+ return [...groups.values()];
+}
 function load(){
  try{
   let x=JSON.parse(localStorage.getItem(KEY));
@@ -44,6 +62,7 @@ function load(){
     if(p.id&&!x.pendingDeletes.pantry.includes(p.id))x.pendingDeletes.pantry.push(p.id);
     return false;
    });
+   x.pantry=deduplicatePantryRows(x.pantry,x.pendingDeletes);
    x.fixedShoppingUpdatedAt=Number(x.fixedShoppingUpdatedAt)||0;
    x.recipes=x.recipes.map(r=>({...r,days:Array.isArray(r.days)?r.days:[],categories:Array.isArray(r.categories)?r.categories:[]}));
    return x;
@@ -111,12 +130,13 @@ async function migrateLocalToCloud(){if(!familyId||!authSession||cloudBusy)retur
  data.fixedShoppingUpdatedAt=Date.now();
  await cloud.from('week_plans').upsert({family_id:familyId,week_key:currentWeekKey(),days:{meals:data.week,shopping:data.shopping,categoryOverrides:data.categoryOverrides||{}}},{onConflict:'family_id,week_key'});
  save();
- }catch(e){console.error(e);alert('Kunne ikke flytte de lokale dataene til skyen: '+(e.message||e));}finally{cloudBusy=false;}}
+ }catch(e){console.error(e);alert('Kunne ikke flytte de lokale dataene til skyen: '+(e.message||e));}finally{cloudBusy=false;if((data.pendingDeletes?.pantry||[]).length){save();queueCloudSync();}}}
 async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;cloudBusy=true;try{
  const [rr,pp,ww]=await Promise.all([cloud.from('recipes').select('*').eq('family_id',familyId),cloud.from('pantry').select('*').eq('family_id',familyId),cloud.from('week_plans').select('*').eq('family_id',familyId).eq('week_key',currentWeekKey()).maybeSingle()]);
  if(rr.error)throw rr.error;if(pp.error)throw pp.error;if(ww.error&&ww.error.code!=='PGRST116')throw ww.error;
  const ff=await fetchFixedShopping();
  const pending=data.pendingDeletes||{recipes:[],pantry:[]};
+ data.pantry=deduplicatePantryRows(data.pantry,pending);
  const localById=new Map(data.recipes.filter(r=>r.id).map(r=>[r.id,r]));
  for(const r of (rr.data||[])){if(pending.recipes.includes(r.id))continue;localById.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}
  const localsWithoutId=data.recipes.filter(r=>!r.id);
@@ -125,7 +145,7 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
  const pantryById=new Map(data.pantry.filter(p=>p.id).map(p=>[p.id,p]));
  for(const p of (pp.data||[])){if(pending.pantry.includes(p.id)||deletedPantryNames.has(String(p.name||'').trim().toLocaleLowerCase('nb-NO')))continue;const local=pantryById.get(p.id);pantryById.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}
  const pantryWithoutId=data.pantry.filter(p=>!p.id);
- data.pantry=[...pantryById.values(),...pantryWithoutId];
+ data.pantry=deduplicatePantryRows([...pantryById.values(),...pantryWithoutId],data.pendingDeletes);
  const plan=ww.data?.days;
  if(plan){
    data.categoryOverrides=mergeCategoryOverrideMaps(plan.categoryOverrides,data.categoryOverrides);
@@ -144,7 +164,7 @@ async function refreshRemote(){if(!familyId||!authSession||cloudBusy)return;clou
  }
  const fixedMap=new Map((data.fixedShopping||[]).map(x=>[x.id,x])); for(const f of (ff.data||[])){fixedMap.set(f.id,mergeFixedRow(f,fixedMap.get(f.id)));} data.fixedShopping=[...fixedMap.values()]; fixedTableReady=true;
  syncShopping();save();cloudReady=true;
- }catch(e){console.error(e);alert('Kunne ikke hente Familiemat-data fra skyen: '+(e.message||e));}finally{cloudBusy=false;}}
+ }catch(e){console.error(e);alert('Kunne ikke hente Familiemat-data fra skyen: '+(e.message||e));}finally{cloudBusy=false;if((data.pendingDeletes?.pantry||[]).length){save();queueCloudSync();}}}
 
 function pantryCategoriesPayload(){return (data.pantry||[]).filter(p=>p.category).map(p=>({id:p.id||null,name:p.name,category:p.category}));}
 function applyPantryCategories(entries){if(!Array.isArray(entries))return;const byId=new Map(entries.filter(x=>x.id).map(x=>[x.id,x.category]));const byName=new Map(entries.filter(x=>x.name).map(x=>[String(x.name).trim().toLowerCase(),x.category]));for(const p of (data.pantry||[])){const cat=(p.id&&byId.get(p.id))||byName.get(String(p.name||'').trim().toLowerCase());if(cat)p.category=cat;}}
@@ -177,7 +197,7 @@ async function syncLocalChanges(){if(!familyId||!authSession)return;if(cloudBusy
  const ff=await fetchFixedShopping();
  const recipeMap=new Map(data.recipes.map(r=>[r.id,r]));for(const r of (rr.data||[])){recipeMap.set(r.id,{id:r.id,name:r.name,servings:r.servings,ingredients:r.ingredients||[],instructions:r.instructions||'',url:r.url||'',days:r.days||[],categories:r.categories||[]});}data.recipes=[...recipeMap.values()];
  const deletedPantryNames=new Set((data.deletedPantryNames||[]).map(n=>String(n).trim().toLocaleLowerCase('nb-NO')));
- const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){if(deletedPantryNames.has(String(p.name||'').trim().toLocaleLowerCase('nb-NO')))continue;const local=pantryMap.get(p.id);pantryMap.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}data.pantry=[...pantryMap.values()];
+ const pantryMap=new Map(data.pantry.map(p=>[p.id,p]));for(const p of (pp.data||[])){if(deletedPantryNames.has(String(p.name||'').trim().toLocaleLowerCase('nb-NO')))continue;const local=pantryMap.get(p.id);pantryMap.set(p.id,{id:p.id,name:p.name,low:local?!!local.low:!!p.low,category:local?.category||categorizeIngredient(p.name)});}data.pantry=deduplicatePantryRows([...pantryMap.values()],data.pendingDeletes);
  const fixedMap2=new Map((data.fixedShopping||[]).map(x=>[x.id,x])); for(const f of (ff.data||[])){fixedMap2.set(f.id,mergeFixedRow(f,fixedMap2.get(f.id)));} data.fixedShopping=[...fixedMap2.values()]; fixedTableReady=true;
  if(ww.data?.days){const plan=ww.data.days;data.categoryOverrides=mergeCategoryOverrideMaps(plan.categoryOverrides,data.categoryOverrides);applyPantryCategories(plan.pantryCategories);const remoteDeleted=new Set(Array.isArray(plan.fixedShoppingDeleted)?plan.fixedShoppingDeleted:[]);const fixedMap=new Map((data.fixedShopping||[]).map(x=>[x.id,x]));for(const f of (Array.isArray(plan.fixedShopping)?plan.fixedShopping:[])){if(f.id&&!remoteDeleted.has(f.id)&&!fixedMap.has(f.id))fixedMap.set(f.id,mergeFixedRow(f,null));}data.fixedShopping=[...fixedMap.values()].filter(x=>!remoteDeleted.has(x.id));}
  syncShopping();save();
@@ -193,7 +213,7 @@ function sortShopping(){data.shopping=(data.shopping||[]).map(x=>({...x,category
 sortShopping();
 syncShopping();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v85</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','week','Uke')}${nav('recipes','recipes','Oppskrifter')}${nav('shopping','shopping','Handleliste')}${nav('fixed','fixed','Fast handel')}${nav('pantry','pantry','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v86</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div></div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','week','Uke')}${nav('recipes','recipes','Oppskrifter')}${nav('shopping','shopping','Handleliste')}${nav('fixed','fixed','Fast handel')}${nav('pantry','pantry','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){const paths={week:'<path d="M2.5 10.5 12 2.8l9.5 7.7"/><path d="M5.5 9v12h13V9M9 21v-7h6v7"/>',recipes:'<path d="M12 6.2C9.8 3.8 6.7 3 3.5 3.8v15.7c3.2-.8 6.3 0 8.5 2.2 2.2-2.2 5.3-3 8.5-2.2V3.8c-3.2-.8-6.3 0-8.5 2.4Z"/><path d="M12 6.2v15.5M6.5 8.2c1.5 0 2.8.3 4 1M17.5 8.2c-1.5 0-2.8.3-4 1M6.5 12c1.5 0 2.8.3 4 1M17.5 12c-1.5 0-2.8.3-4 1"/>',shopping:'<path d="M5 3.5h14v17H5z"/><path d="m7.5 8 1.2 1.2L11 7m2 1h3.5M7.5 13l1.2 1.2L11 12m2 1h3.5M7.5 18h8"/>',fixed:'<path d="M3 8h18l-1.8 12H4.8L3 8Z"/><path d="M8 8 9.5 3h5L16 8M3 8l-1-3h4M21 8l1-3h-4"/><circle cx="8" cy="12.5" r=".7"/><circle cx="12" cy="12.5" r=".7"/><circle cx="16" cy="12.5" r=".7"/>',pantry:'<path d="M7 3h10v3l2 2v11.5A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5V8l2-2V3Z"/><path d="M7 6h10M5.5 10h13M8 14h8M9 17h6"/>'};return `<button type="button" class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true">${paths[p]}</svg></span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){
@@ -387,7 +407,7 @@ function formatQty(q){return Number.isInteger(q)?q:String(Math.round(q*100)/100)
 function toggleShop(i){const item=data.shopping[i];if(!item)return;item.done=!item.done;const key=String(item.name||'').trim().toLowerCase();const pantry=data.pantry.find(p=>String(p.name||'').trim().toLowerCase()===key);if(pantry)pantry.low=!item.done;saveAndSync();render()}
 function togglePantryByName(encodedName){const key=decodeURIComponent(encodedName||'').trim().toLowerCase();const item=data.pantry.find(p=>String(p.name||'').trim().toLowerCase()===key);if(!item)return;item.low=!item.low;syncShopping();saveAndSync();render()}
 function addPantry(){modal(`<h2>Ny basisvare</h2><div class="field"><label>Navn</label><input id="pname" placeholder="F.eks. melk"></div><button class="btn full" onclick="savePantry()">Legg til</button>`)}
-function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;data.deletedPantryNames=(data.deletedPantryNames||[]).filter(x=>String(x).trim().toLocaleLowerCase('nb-NO')!==n.toLocaleLowerCase('nb-NO'));data.pantry.push({name:n,low:false,category:categorizeIngredient(n)});saveAndSync();closeModal();render()}
+function savePantry(){let n=document.getElementById('pname').value.trim();if(!n)return;const key=pantryNameKey(n);if(data.pantry.some(p=>pantryNameKey(p.name)===key)){alert('Denne basisvaren finnes allerede.');return;}data.deletedPantryNames=(data.deletedPantryNames||[]).filter(x=>String(x).trim().toLocaleLowerCase('nb-NO')!==key);data.pantry.push({name:n,low:false,category:categorizeIngredient(n)});saveAndSync();closeModal();render()}
 function movePantryToFixed(i){const item=data.pantry[i];if(!item)return;data.fixedShopping=data.fixedShopping||[];const name=String(item.name||'').trim();if(!name)return;const exists=data.fixedShopping.some(x=>String(x.name||'').trim().toLocaleLowerCase('nb-NO')===name.toLocaleLowerCase('nb-NO'));if(!exists){data.fixedShopping.push({id:newId(),name,qty:1,unit:'stk',category:item.category||categorizeIngredient(name),active:true});data.fixedShoppingUpdatedAt=Date.now();}data.deletedPantryNames=data.deletedPantryNames||[];const key=name.toLocaleLowerCase('nb-NO');if(!data.deletedPantryNames.some(n=>String(n).trim().toLocaleLowerCase('nb-NO')===key))data.deletedPantryNames.push(name);if(item.id){data.pendingDeletes=data.pendingDeletes||{recipes:[],pantry:[],fixedShopping:[]};data.pendingDeletes.pantry=data.pendingDeletes.pantry||[];if(!data.pendingDeletes.pantry.includes(item.id))data.pendingDeletes.pantry.push(item.id);}data.pantry.splice(i,1);syncShopping();saveAndSync();render();}
 function editPantryCategory(i){const item=data.pantry[i];if(!item)return;const selected=item.category||categorizeIngredient(item.name);const cats=categoryDropdownOrder.map(c=>`<option value="${esc(c)}" ${selected===c?'selected':''}>${esc(c)}</option>`).join('');modal(`<h2>Rediger kategori</h2><p class="small">${esc(item.name)}</p><div class="field"><label>Kategori</label><select id="pantrycat">${cats}</select></div><button class="btn full" onclick="savePantryCategory(${i})">Lagre kategori</button>`)}
 function savePantryCategory(i){const item=data.pantry[i];const category=document.getElementById('pantrycat')?.value;if(!item||!setIngredientCategory(item.name,category))return;syncShopping();saveAndSync();closeModal();render()}

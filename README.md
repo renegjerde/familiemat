@@ -1,6 +1,9 @@
-# Familiemat v85
+# Familiemat v86
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -24,10 +27,13 @@
 - Skyimport filtrerer bort basisvarer som er slettet, slik at de ikke dukker opp igjen etter oppdatering eller synkronisering.
 - De uønskede gamle standardvarene «Bleier» og «Kjøkkenpapir» ryddes bort ved oppstart og markeres for sletting i skyen.
 - Hvis en vare legges inn manuelt på nytt, oppheves slettemarkeringen for akkurat den varen.
-- Ny uke-logikken fra v85 er beholdt: «går tom»-kryss og basisvarer påvirkes ikke av denne rettelsen.
-- Oppdatert versjonsnummer, filreferanser og cache til v85.
+- Ny uke-logikken fra v86 er beholdt: «går tom»-kryss og basisvarer påvirkes ikke av denne rettelsen.
+- Oppdatert versjonsnummer, filreferanser og cache til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -45,9 +51,12 @@
 - Du kan nå lage en ny oppskrift med utgangspunkt i en oppskrift som allerede ligger inne.
 - Ingredienser, mengder, enheter, kategorier, porsjoner, fremgangsmåte og lenke kopieres til et nytt redigerbart skjema.
 - Den opprinnelige oppskriften endres ikke; den nye varianten lagres som en egen oppskrift.
-- Oppdatert versjonsnummer i toppfeltet og cache til v85.
+- Oppdatert versjonsnummer i toppfeltet og cache til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -66,7 +75,10 @@
 - Oppskriftslisten vises fra toppen etter lagring, også når skjemaet ble åpnet fra ukeplanen.
 - Hvis lokal lagring feiler, blir brukeren varslet og skjemaet lukkes ikke.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -85,9 +97,12 @@
 - Tekstgjenkjenning på norsk og engelsk fyller ut navn, porsjoner, ingredienser og eventuell fremgangsmåte i et redigerbart skjema.
 - Nettimporten er beholdt, og teksttolkingen støtter flere vanlige overskrifter og ingredienslinjer.
 - Bilder behandles i nettleseren; Tesseract.js og språkdata lastes fra CDN ved første bruk.
-- Oppdatert versjonsmerking og cache til v85.
+- Oppdatert versjonsmerking og cache til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -105,7 +120,10 @@
 - Handlelisten sorteres først etter Frukt og grønt, Meieri og egg, Kjøtt og fisk og Pålegg.
 - Justert handlelisteknapp/navigasjon for å sikre at den aktiveres som en knapp på mobil.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -123,9 +141,12 @@
 - Menylinjen er stabilt festet nederst i visningen, også ved scrolling.
 - PWA-manifestet ber om stående visning på mobil. Merk: iOS Safari kan fortsatt rotere i vanlig nettlesermodus; orienteringslås håndteres best når appen er installert på hjemskjermen.
 - Ny kategori «Pålegg» for blant annet skinke, fårepølse, leverpostei, salami og servelat.
-- Oppdatert versjonsmerking og cache til v85.
+- Oppdatert versjonsmerking og cache til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -141,9 +162,12 @@
 - Flytting fra Fast handel til Basisvarer bevarer navn og kategori og fjerner varen fra Fast handel.
 - Samlet handlingene for basisvarer i en kompakt tre-prikker-meny: rediger kategori, flytt til Fast handel og slett.
 - Rettet feil der oppskrifter med bestemte navn, blant annet «Taco», ble filtrert bort ved innlasting eller skysynkronisering. Oppskrifter og ingredienslister beholdes nå uavhengig av navn.
-- Oppdatert versjonsmerking og cache til v85.
+- Oppdatert versjonsmerking og cache til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -160,13 +184,16 @@
 - Samlet handlingene for basisvarer i en kompakt tre-prikker-meny: rediger kategori, flytt til Fast handel og slett.
 - «Ny uke» bevarer statusen «Går tom» på alle basisvarer. Å starte en ny uke skal ikke fjerne hakene i Basisvarer.
 - Når en basisvare krysses av som kjøpt i Handleliste, fjernes fortsatt haken «Går tom» for den aktuelle basisvaren.
-- Beholder den fungerende basisvare-synkroniseringen fra v85 og layouten fra de senere versjonene.
-- Oppdatert versjonsmerking og cache til v85.
+- Beholder den fungerende basisvare-synkroniseringen fra v86 og layouten fra de senere versjonene.
+- Oppdatert versjonsmerking og cache til v86.
 
 
 Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, basisvarer, fast handel og handleliste.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -184,9 +211,12 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 - Fast handel bruker nå samme kompakte kortutforming som Basisvarer.
 - Jevnere høyde, avstand, innvendige marger og vertikal justering av avkrysningsboks, varenavn og handlingsknapper.
 - Kun visuelle endringer; varedata, kategorier, synkronisering og avkrysningslogikk er urørt.
-- Oppdatert cacheversjon til v85.
+- Oppdatert cacheversjon til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -204,9 +234,12 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 - Mer kompakte lister og kort, med litt mindre vertikal avstand på mobil.
 - Sekundærknapper som «Rediger» og «Bytt» er roligere og mindre, mens hovedhandlingene fortsatt er tydelige.
 - Skjemaer, kategorioverskrifter og kort følger en jevnere spacing-skala.
-- Oppdatert cacheversjon til v85.
+- Oppdatert cacheversjon til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -225,9 +258,12 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 - Mer konsekvent størrelse, høyde, avrunding og avstand på primære og sekundære knapper.
 - Kategoriene i nedtrekksmenyene for basisvarer og Fast handel sorteres alfabetisk.
 - Handlelistens egen kategorirekkefølge beholdes uendret.
-- Oppdatert cacheversjon til v85.
+- Oppdatert cacheversjon til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -246,7 +282,10 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 - Kategorivalg bevares når basisvarer synkroniseres, også når databasen ikke har et eget kategorifelt.
 - Knappen for å endre basisvarekategori heter nå «Rediger», i tråd med resten av appen.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -266,7 +305,7 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 - Avkryssing kan angres: varen flyttes tilbake til den vanlige listen.
 - Fjerner den tidligere knappen «Fjern kjøpte varer», som ikke oppførte seg pålitelig.
 - Kjøpte varer bevares når handlelisten bygges på nytt. Når en ny uke startes, nullstilles kjøpsmarkeringene slik at aktuelle varer kan komme tilbake.
-- Oppdaterer app- og service-worker-cache til v85.
+- Oppdaterer app- og service-worker-cache til v86.
 
 ## Funksjoner
 - Ukeplan med middager og tidligere uker.
@@ -288,12 +327,15 @@ Familiemat er en mobilvennlig familieapp for middagsplanlegging, oppskrifter, ba
 Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.sql` i Supabase SQL Editor. Ikke legg databasepassord eller secret/service-role keys i klientkoden.
 
 
-## Feilretting i v85
+## Feilretting i v86
 - Fjernet utdaterte funksjonsreferanser som stoppet JavaScript under oppstart.
 - Oppdatert cacheversjon for å sikre at nettleseren laster de nye filene.
 
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -310,9 +352,12 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 - Samlet handlingene for basisvarer i en kompakt tre-prikker-meny: rediger kategori, flytt til Fast handel og slett.
 - Når «Ny uke» brukes, arkiveres den gamle middagsplanen som forrige kalenderuke, ikke som uken som akkurat har startet.
 - Arkiveringsdatoen og ukeetiketten bruker ISO-uken fra sju dager før opprettelsen, også rundt årsskiftet.
-- Oppdaterer appversjon, filreferanser og service-worker-cache til v85.
+- Oppdaterer appversjon, filreferanser og service-worker-cache til v86.
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -330,10 +375,13 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 - Fast handel bruker nå samme kompakte listeavstand og lettere varenavn som Basisvarer.
 - Rediger-knappene er justert nærmere samme størrelse og stil.
 - Lagt til en diskret versjonsmerking øverst til høyre i appen.
-- Oppdatert cacheversjon og filreferanser til v85.
+- Oppdatert cacheversjon og filreferanser til v86.
 
 
-## Nytt i v85
+## Nytt i v86
+- Automatisk deduplisering av Basisvarer basert på normalisert varenavn ved lokal lasting og etter skysynkronisering.
+- Eksisterende duplikate sky-rader markeres for sletting; én rad beholdes og «Går tom»-status bevares dersom noen duplikater var avkrysset.
+- Hindrer at samme basisvare legges til flere ganger med ulik bruk av store/små bokstaver eller ekstra mellomrom.
 - Rettet kategoriredigering fra Basisvarer: samme felles kategori-overstyring brukes nå fra Basisvarer og Handlelisten.
 - Kategorivalg fra Basisvarer, Handlelisten og Fast handel oppdaterer alle matchende kilder og synkroniseres som én vareoverstyring.
 - Rettet lagring av manuelle kategorivalg med tidsstempel og synkronisering til week_plans, slik at egendefinerte kategorier ikke settes tilbake av automatisk kategorisering.
@@ -349,20 +397,20 @@ Hvis appen varsler at tabellen `fixed_shopping` mangler, kjør `fixed-shopping.s
 - Flytting fra Fast handel til Basisvarer bevarer navn og kategori og fjerner varen fra Fast handel.
 - Samlet handlingene for basisvarer i en kompakt tre-prikker-meny: rediger kategori, flytt til Fast handel og slett.
 - Basisvarer avkrysses med stabil identifikasjon (vare-ID, eller navn når ID mangler), ikke med en sorteringsavhengig listeindeks.
-- Bygger direkte på den fungerende filstrukturen fra v85; øvrig layout og funksjonalitet er beholdt.
+- Bygger direkte på den fungerende filstrukturen fra v86; øvrig layout og funksjonalitet er beholdt.
 
-- Rettet en oppstartsfeil i v85: appen forsøkte å eksportere den gamle funksjonen `togglePantry`, som ikke lenger fantes. v85 eksporterer `togglePantryByKey` korrekt.
-
-
-Versjon 61: Registrerings- og innloggingsknappene starter handlingen direkte, og uventede feil fra kontotjenesten vises i en melding. Øvrig appfunksjonalitet og layout er videreført fra v85.
+- Rettet en oppstartsfeil i v86: appen forsøkte å eksportere den gamle funksjonen `togglePantry`, som ikke lenger fantes. v86 eksporterer `togglePantryByKey` korrekt.
 
 
-## v85
+Versjon 61: Registrerings- og innloggingsknappene starter handlingen direkte, og uventede feil fra kontotjenesten vises i en melding. Øvrig appfunksjonalitet og layout er videreført fra v86.
+
+
+## v86
 - Ukemenyen vises fra tirsdag til søndag, med mandag sist, uten å endre de interne dagindeksene.
 - Middagsnavnene i ukeplanen kan trykkes på for å åpne oppskriften direkte i appen, med ingredienser og fremgangsmåte.
 
 
-## v85
+## v86
 - Oppskriftredigering har nå kategorivelger per ingrediens.
 - Valgt ingredienskategori følger med til handlelisten, slik at flere varer kan flyttes fra «Annet» til riktig kategori.
 - Utvidet automatisk kategorisering for pastinakk og supper/buljong.

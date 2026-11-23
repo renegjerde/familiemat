@@ -1,3 +1,11 @@
+# Familiemat v90 – søk i basisvarer
+
+## Nytt i v90
+- Søkefelt øverst i Basisvarer.
+- Søket filtrerer fortløpende på varenavn og kategori, og ignorerer forskjeller i store/små bokstaver og aksenter.
+- Søkefeltet filtrerer bare visningen; det endrer eller sletter ingen varer eller avkryssinger.
+- Ingen databaseendring er nødvendig.
+
 # Familiemat v89 – full nullstilling av handlelisten ved ny uke
 
 ## Nytt i v89

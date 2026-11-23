@@ -1,3 +1,11 @@
+# Familiemat v88 – nullstill kjøpt-status ved ny uke
+
+## Nytt i v88
+- Når «Ny uke» bekreftes, nullstilles alle kjøpt-avkryssinger fra den aktive handlelisten.
+- Nullstillingen lagres i den separate synkroniseringstabellen, slik at alle enheter får samme nye handlelisterunde.
+- Statusen «Går tom» for basisvarer beholdes uendret.
+- Løsningen fungerer også når flere nye ukemenyer opprettes i samme kalenderuke.
+
 # Familiemat v87 – robust avkryssingssynkronisering
 
 ## Viktig før publisering

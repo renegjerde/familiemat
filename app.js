@@ -381,7 +381,7 @@ function syncStatusMarkup(){
 }
 function applyAllCheckStates(){for(const [key,entry] of Object.entries(data.checkStates||{}))applyCheckEntry(key,entry);}
 
-function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v88</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div>${syncStatusMarkup()}</div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','week','Uke')}${nav('recipes','recipes','Oppskrifter')}${nav('shopping','shopping','Handleliste')}${nav('fixed','fixed','Fast handel')}${nav('pantry','pantry','Basisvarer')}</div></nav></div>`}
+function render(){document.getElementById('app').innerHTML=`<div class="app"><header class="top"><span class="app-version">v89</span><div><div class="brand">🍲 Familiemat</div><div class="subtitle">Middag, basisvarer og handleliste samlet.</div>${syncStatusMarkup()}</div><button class="account-btn" onclick="openAccount()">${authSession?'☁️ Familie':'☁️ Logg inn'}</button></header><main class="content">${page==='week'?weekView():page==='recipes'?recipesView():page==='shopping'?shoppingView():page==='fixed'?fixedShoppingView():pantryView()}</main><nav class="nav"><div class="navinner">${nav('week','week','Uke')}${nav('recipes','recipes','Oppskrifter')}${nav('shopping','shopping','Handleliste')}${nav('fixed','fixed','Fast handel')}${nav('pantry','pantry','Basisvarer')}</div></nav></div>`}
 function nav(p,i,t){const paths={week:'<path d="M2.5 10.5 12 2.8l9.5 7.7"/><path d="M5.5 9v12h13V9M9 21v-7h6v7"/>',recipes:'<path d="M12 6.2C9.8 3.8 6.7 3 3.5 3.8v15.7c3.2-.8 6.3 0 8.5 2.2 2.2-2.2 5.3-3 8.5-2.2V3.8c-3.2-.8-6.3 0-8.5 2.4Z"/><path d="M12 6.2v15.5M6.5 8.2c1.5 0 2.8.3 4 1M17.5 8.2c-1.5 0-2.8.3-4 1M6.5 12c1.5 0 2.8.3 4 1M17.5 12c-1.5 0-2.8.3-4 1"/>',shopping:'<path d="M5 3.5h14v17H5z"/><path d="m7.5 8 1.2 1.2L11 7m2 1h3.5M7.5 13l1.2 1.2L11 12m2 1h3.5M7.5 18h8"/>',fixed:'<path d="M3 8h18l-1.8 12H4.8L3 8Z"/><path d="M8 8 9.5 3h5L16 8M3 8l-1-3h4M21 8l1-3h-4"/><circle cx="8" cy="12.5" r=".7"/><circle cx="12" cy="12.5" r=".7"/><circle cx="16" cy="12.5" r=".7"/>',pantry:'<path d="M7 3h10v3l2 2v11.5A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5V8l2-2V3Z"/><path d="M7 6h10M5.5 10h13M8 14h8M9 17h6"/>'};return `<button type="button" class="${page===p?'active':''}" onclick="go('${p}')"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true">${paths[p]}</svg></span>${t}</button>`}
 function go(p){page=p;render();window.scrollTo(0,0)}
 function weekView(){
@@ -457,16 +457,19 @@ async function newWeek(){
    // A new menu is a new shopping round, even if it is created within the same
    // calendar week. Reset every persisted bought-state for this round so
    // shoppingCheckKey() cannot reapply last menu's checked items.
-   const shoppingPrefix=`shopping:${currentWeekKey()}:`;
+   // A new shopping round must never inherit a checked state from any
+   // previous round/calendar week. Reset every known shopping key (including
+   // pending/offline writes), then explicitly clear the in-memory list before
+   // rebuilding it. Keep pantry.low untouched.
    const shoppingStateKeys=new Set([
-     ...Object.keys(data.checkStates||{}).filter(key=>key.startsWith(shoppingPrefix)),
-     ...Object.keys(data.pendingCheckStates||{}).filter(key=>key.startsWith(shoppingPrefix)),
+     ...Object.keys(data.checkStates||{}).filter(key=>key.startsWith('shopping:')),
+     ...Object.keys(data.pendingCheckStates||{}).filter(key=>key.startsWith('shopping:')),
      ...(data.shopping||[]).map(item=>shoppingCheckKey(item.name))
    ]);
    for(const key of shoppingStateKeys)recordCheckChange(key,false);
    data.week=Array(7).fill(null);
    data.shoppingHidden=[];
-   data.shopping=(data.shopping||[]).filter(x=>!x.done);
+   data.shopping=(data.shopping||[]).map(item=>({...item,done:false}));
    syncShopping();
    pantryLowSnapshot.forEach(({item,low})=>{item.low=low;});
    saveAndSync();

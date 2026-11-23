@@ -1,3 +1,11 @@
+# Familiemat v89 – full nullstilling av handlelisten ved ny uke
+
+## Nytt i v89
+- «Ny uke» nullstiller alle lagrede og ventende kjøpt-avkryssinger for handlelisten, også nøkler fra tidligere kalenderuker.
+- Eksisterende handlelistevarer settes eksplisitt til ikke kjøpt før listen bygges opp igjen.
+- Basisvarenes «Går tom»-status beholdes.
+- Ingen ny SQL-migrering er nødvendig; v89 bruker samme `family_item_checks`-tabell som v87/v88.
+
 # Familiemat v88 – nullstill kjøpt-status ved ny uke
 
 ## Nytt i v88

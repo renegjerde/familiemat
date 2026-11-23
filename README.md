@@ -1,3 +1,19 @@
+# Familiemat v87 – robust avkryssingssynkronisering
+
+## Viktig før publisering
+1. Åpne Supabase-prosjektet og kjør hele filen `check-state.sql` én gang i **SQL Editor**. Dette oppretter den nye avkryssingstabellen, sikker tilgang for familiemedlemmer, en atomisk lagringsfunksjon, Realtime og importerer eksisterende avkryssinger fra de gamle tabellene.
+2. Publiser appfilene fra ZIP-arkivet til GitHub Pages. **Ikke last opp `check-state.sql` som en nettsidefil** – den skal kjøres i Supabase.
+3. Oppdater Familiemat på alle telefoner/nettbrett til v87. Enheter som fortsatt bruker eldre appkode kan skrive gamle statusverdier tilbake til de gamle feltene.
+4. Åpne appen på hver enhet mens den er på nett. Under Familie vises synkroniseringsstatus øverst. Bruk «Synkroniser nå» etter SQL-oppdateringen dersom statusen fortsatt viser at databaseoppdatering kreves.
+
+## Hva v87 endrer
+- Avkryssing i Basisvarer, Handlelisten og Fast handel lagres som separate, individuelle rader i `family_item_checks`.
+- Databasen bruker en atomisk «nyeste endring vinner»-funksjon med tidsstempel og stabil enhets-ID. Samtidige eller forsinkede forespørsler skal ikke overskrive en nyere avkryssing.
+- Avkryssinger lagres umiddelbart lokalt og legges i en ventende kø dersom enheten er offline. Køen sendes automatisk når forbindelsen kommer tilbake.
+- Realtime oppdaterer andre enheter. Appen henter også status på nytt når den kommer tilbake i forgrunnen.
+- Toppfeltet viser om appen er synkronisert, venter, er frakoblet eller mangler databaseoppdateringen.
+- Eksisterende avkryssinger importeres av SQL-skriptet fra `pantry.low`, `week_plans.days.shopping` og `fixed_shopping.active`.
+
 # Familiemat v86
 
 ## Nytt i v86

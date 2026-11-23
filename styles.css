@@ -242,3 +242,19 @@
 .shop-more[open] summary{background:#f8e4dc}
 .shop-row .pantry-more-menu{top:40px}
 .shop-row.done{opacity:.8}
+
+/* v87: clear, persistent indication of checkbox synchronization health */
+.sync-status{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;line-height:1.25;color:#6f756f}
+.sync-status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#849087;flex:0 0 7px}
+.sync-synced .sync-status-dot{background:#4d8a6a}
+.sync-pending .sync-status-dot,.sync-syncing .sync-status-dot{background:#dc8a45}
+.sync-offline .sync-status-dot,.sync-error .sync-status-dot,.sync-setup .sync-status-dot{background:#c65c55}
+.sync-error,.sync-setup{color:#a84943}
+
+/* v87: cross-device checkbox sync status */
+.sync-status{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;line-height:1.25;color:#6f756f}
+.sync-status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#849087;flex:0 0 7px}
+.sync-synced .sync-status-dot{background:#4d8a6a}
+.sync-pending .sync-status-dot,.sync-syncing .sync-status-dot{background:#dc8a45}
+.sync-offline .sync-status-dot,.sync-error .sync-status-dot,.sync-setup .sync-status-dot{background:#c65c55}
+.sync-error,.sync-setup{color:#a84943}
